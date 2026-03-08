@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, BookOpen, Play, FileText, Video, Link2, Dumbbell, CheckCircle2, Circle, Clock, Users } from "lucide-react";
+import { ArrowLeft, BookOpen, Play, FileText, Video, Link2, Dumbbell, CheckCircle2, Circle, Clock, Users, Image, Trash2 } from "lucide-react";
+import ResourceUpload from "@/components/resources/ResourceUpload";
 import AppLayout from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,7 +24,8 @@ interface ResourceData {
 
 export default function ModuleDetailPage() {
   const { id } = useParams();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const isTeacher = profile?.role === "teacher" || profile?.role === "admin";
   const [mod, setMod] = useState<ModuleData | null>(null);
   const [courses, setCourses] = useState<CourseData[]>([]);
   const [quizzes, setQuizzes] = useState<QuizData[]>([]);
@@ -111,8 +113,28 @@ export default function ModuleDetailPage() {
   const resourceIcon = (type: string) => {
     if (type === "pdf") return <FileText className="w-4 h-4" />;
     if (type === "video") return <Video className="w-4 h-4" />;
+    if (type === "image") return <Image className="w-4 h-4" />;
     if (type === "link") return <Link2 className="w-4 h-4" />;
     return <Dumbbell className="w-4 h-4" />;
+  };
+
+  const refetchResources = async () => {
+    if (!id) return;
+    const courseIds = courses.map(c => c.id);
+    if (courseIds.length > 0) {
+      const { data: res } = await supabase.from("resources").select("*").in("course_id", courseIds);
+      if (res) setResources(res);
+    }
+  };
+
+  const handleDeleteResource = async (resourceId: string) => {
+    const { error } = await supabase.from("resources").delete().eq("id", resourceId);
+    if (error) {
+      toast.error("Erreur lors de la suppression");
+    } else {
+      setResources(prev => prev.filter(r => r.id !== resourceId));
+      toast.success("Ressource supprimée");
+    }
   };
 
   const completedCount = courses.filter(c => completedCourses.has(c.id)).length;
@@ -225,16 +247,31 @@ export default function ModuleDetailPage() {
                   {course.content || "Contenu à venir..."}
                 </div>
 
-                {courseResources.length > 0 && (
+                {(courseResources.length > 0 || (isTeacher && mod?.teacher_id === user?.id)) && (
                   <div className="mt-6 pt-6 border-t border-border">
-                    <h3 className="font-semibold text-foreground mb-3">Ressources</h3>
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-semibold text-foreground">Ressources</h3>
+                      {isTeacher && mod?.teacher_id === user?.id && selectedCourse && (
+                        <ResourceUpload courseId={selectedCourse} onUploaded={refetchResources} />
+                      )}
+                    </div>
                     <div className="space-y-2">
                       {courseResources.map(r => (
-                        <a key={r.id} href={r.url || "#"} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-                          <div className="text-primary">{resourceIcon(r.type)}</div>
-                          <span className="text-sm font-medium text-foreground">{r.title}</span>
-                          <span className="text-xs text-muted-foreground uppercase ml-auto">{r.type}</span>
-                        </a>
+                        <div key={r.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors group">
+                          <a href={r.url || "#"} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 flex-1 min-w-0">
+                            <div className="text-primary">{resourceIcon(r.type)}</div>
+                            <span className="text-sm font-medium text-foreground truncate">{r.title}</span>
+                            <span className="text-xs text-muted-foreground uppercase ml-auto shrink-0">{r.type}</span>
+                          </a>
+                          {isTeacher && mod?.teacher_id === user?.id && (
+                            <button
+                              onClick={() => handleDeleteResource(r.id)}
+                              className="shrink-0 p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
                       ))}
                     </div>
                   </div>
