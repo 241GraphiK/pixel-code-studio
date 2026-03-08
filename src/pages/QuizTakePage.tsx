@@ -1,43 +1,127 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Clock, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
+import { ArrowLeft, Clock, CheckCircle2, XCircle, AlertCircle, Zap } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { quizzes } from "@/lib/mock-data";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
+import { useGamification } from "@/hooks/use-gamification";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+
+interface QuizData {
+  id: string; title: string; description: string | null; difficulty: string; duration: number;
+}
+interface QuestionData {
+  id: string; text: string; explanation: string | null; difficulty: string; points: number; type: string;
+  options: { text: string; isCorrect: boolean }[];
+}
 
 export default function QuizTakePage() {
   const { id } = useParams();
-  const quiz = quizzes.find((q) => q.id === id) || quizzes[0];
+  const { user } = useAuth();
+  const { awardXp } = useGamification();
 
+  const [quiz, setQuiz] = useState<QuizData | null>(null);
+  const [questions, setQuestions] = useState<QuestionData[]>([]);
+  const [loading, setLoading] = useState(true);
   const [started, setStarted] = useState(false);
   const [currentQ, setCurrentQ] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, string[]>>({});
+  const [answers, setAnswers] = useState<Record<string, number[]>>({});
   const [showResults, setShowResults] = useState(false);
+  const [xpAwarded, setXpAwarded] = useState(0);
+  const [saving, setSaving] = useState(false);
 
-  const question = quiz.questions[currentQ];
-  const totalQ = quiz.questions.length;
+  useEffect(() => {
+    const fetch = async () => {
+      if (!id) return;
+      const [quizRes, questionsRes] = await Promise.all([
+        supabase.from("quizzes").select("*").eq("id", id).maybeSingle(),
+        supabase.from("questions").select("*").eq("quiz_id", id),
+      ]);
+      if (quizRes.data) setQuiz(quizRes.data);
+      if (questionsRes.data) {
+        setQuestions(questionsRes.data.map(q => ({
+          ...q,
+          options: Array.isArray(q.options) ? (q.options as any[]) : [],
+        })));
+      }
+      setLoading(false);
+    };
+    fetch();
+  }, [id]);
+
+  const totalQ = questions.length;
+  const question = questions[currentQ];
   const progress = totalQ > 0 ? ((currentQ + 1) / totalQ) * 100 : 0;
 
-  const toggleAnswer = (questionId: string, optionId: string, type: string) => {
-    setAnswers((prev) => {
+  const toggleAnswer = (questionId: string, optionIndex: number, type: string) => {
+    setAnswers(prev => {
       const current = prev[questionId] || [];
-      if (type === "single") return { ...prev, [questionId]: [optionId] };
-      return { ...prev, [questionId]: current.includes(optionId) ? current.filter((x) => x !== optionId) : [...current, optionId] };
+      if (type === "single") return { ...prev, [questionId]: [optionIndex] };
+      return { ...prev, [questionId]: current.includes(optionIndex) ? current.filter(x => x !== optionIndex) : [...current, optionIndex] };
     });
   };
 
   const calculateScore = () => {
     let earned = 0, total = 0;
-    quiz.questions.forEach((q) => {
+    questions.forEach(q => {
       total += q.points;
       const selected = answers[q.id] || [];
-      const correct = q.options.filter((o) => o.isCorrect).map((o) => o.id);
-      if (JSON.stringify(selected.sort()) === JSON.stringify(correct.sort())) earned += q.points;
+      const correctIndices = q.options.map((o, i) => o.isCorrect ? i : -1).filter(i => i >= 0);
+      if (JSON.stringify([...selected].sort()) === JSON.stringify([...correctIndices].sort())) earned += q.points;
     });
     return { earned, total, percentage: total > 0 ? Math.round((earned / total) * 100) : 0 };
   };
+
+  const handleFinish = async () => {
+    if (!user || !quiz) return;
+    setSaving(true);
+    const score = calculateScore();
+
+    // Save attempt
+    await supabase.from("quiz_attempts").insert({
+      quiz_id: quiz.id,
+      user_id: user.id,
+      score: score.earned,
+      max_score: score.total,
+      answers: answers as any,
+    });
+
+    // Award XP based on score
+    const baseXp = 10;
+    const bonusXp = Math.round(score.percentage / 10);
+    const difficultyMultiplier = quiz.difficulty === "hard" ? 2 : quiz.difficulty === "medium" ? 1.5 : 1;
+    const totalXp = Math.round((baseXp + bonusXp) * difficultyMultiplier);
+
+    await awardXp(totalXp, `QCM: ${quiz.title} (${score.percentage}%)`);
+    setXpAwarded(totalXp);
+
+    setSaving(false);
+    setShowResults(true);
+  };
+
+  if (loading) {
+    return (
+      <AppLayout>
+        <div className="flex justify-center py-12">
+          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (!quiz) {
+    return (
+      <AppLayout>
+        <div className="text-center py-12 text-muted-foreground">
+          <p className="font-medium">QCM introuvable</p>
+          <Link to="/quizzes" className="text-sm text-primary hover:underline">Retour aux QCM</Link>
+        </div>
+      </AppLayout>
+    );
+  }
 
   if (!started) {
     return (
@@ -85,14 +169,19 @@ export default function QuizTakePage() {
             <p className={cn("font-medium", score.percentage >= 70 ? "text-success" : score.percentage >= 50 ? "text-warning" : "text-destructive")}>
               {score.percentage >= 70 ? "Excellent ! 🎉" : score.percentage >= 50 ? "Pas mal, continuez ! 💪" : "Révisez et réessayez ! 📚"}
             </p>
+            {xpAwarded > 0 && (
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-warning/10 border border-warning/20">
+                <Zap className="w-5 h-5 text-warning" />
+                <span className="font-bold text-warning">+{xpAwarded} XP</span>
+              </div>
+            )}
           </div>
 
-          {/* Review answers */}
           <div className="space-y-4">
-            {quiz.questions.map((q, i) => {
+            {questions.map((q, i) => {
               const selected = answers[q.id] || [];
-              const correct = q.options.filter((o) => o.isCorrect).map((o) => o.id);
-              const isCorrect = JSON.stringify(selected.sort()) === JSON.stringify(correct.sort());
+              const correctIndices = q.options.map((o, idx) => o.isCorrect ? idx : -1).filter(idx => idx >= 0);
+              const isCorrect = JSON.stringify([...selected].sort()) === JSON.stringify([...correctIndices].sort());
               return (
                 <div key={q.id} className="bg-card rounded-xl border border-border p-5 shadow-soft">
                   <div className="flex items-start gap-3 mb-3">
@@ -100,11 +189,11 @@ export default function QuizTakePage() {
                     <p className="font-medium text-foreground">Q{i + 1}. {q.text}</p>
                   </div>
                   <div className="space-y-2 ml-8">
-                    {q.options.map((o) => (
-                      <div key={o.id} className={cn(
+                    {q.options.map((o, oi) => (
+                      <div key={oi} className={cn(
                         "p-2.5 rounded-lg text-sm border",
                         o.isCorrect ? "bg-success/10 border-success/30 text-success" :
-                        selected.includes(o.id) ? "bg-destructive/10 border-destructive/30 text-destructive" :
+                        selected.includes(oi) ? "bg-destructive/10 border-destructive/30 text-destructive" :
                         "border-border text-muted-foreground"
                       )}>
                         {o.text}
@@ -122,7 +211,7 @@ export default function QuizTakePage() {
           </div>
 
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => { setStarted(false); setAnswers({}); setShowResults(false); setCurrentQ(0); }}>Réessayer</Button>
+            <Button variant="outline" onClick={() => { setStarted(false); setAnswers({}); setShowResults(false); setCurrentQ(0); setXpAwarded(0); }}>Réessayer</Button>
             <Link to="/quizzes"><Button>Retour aux QCM</Button></Link>
           </div>
         </div>
@@ -155,12 +244,12 @@ export default function QuizTakePage() {
           <h2 className="text-lg font-semibold text-foreground">{question.text}</h2>
 
           <div className="space-y-2">
-            {question.options.map((o) => {
-              const selected = (answers[question.id] || []).includes(o.id);
+            {question.options.map((o, oi) => {
+              const selected = (answers[question.id] || []).includes(oi);
               return (
                 <button
-                  key={o.id}
-                  onClick={() => toggleAnswer(question.id, o.id, question.type)}
+                  key={oi}
+                  onClick={() => toggleAnswer(question.id, oi, question.type)}
                   className={cn(
                     "w-full text-left p-4 rounded-lg border transition-all text-sm",
                     selected ? "border-primary bg-primary/10 text-foreground" : "border-border hover:border-primary/50 text-foreground"
@@ -174,11 +263,13 @@ export default function QuizTakePage() {
         </div>
 
         <div className="flex justify-between">
-          <Button variant="outline" disabled={currentQ === 0} onClick={() => setCurrentQ((c) => c - 1)}>Précédent</Button>
+          <Button variant="outline" disabled={currentQ === 0} onClick={() => setCurrentQ(c => c - 1)}>Précédent</Button>
           {currentQ < totalQ - 1 ? (
-            <Button onClick={() => setCurrentQ((c) => c + 1)}>Suivant</Button>
+            <Button onClick={() => setCurrentQ(c => c + 1)}>Suivant</Button>
           ) : (
-            <Button onClick={() => setShowResults(true)}>Terminer</Button>
+            <Button onClick={handleFinish} disabled={saving}>
+              {saving ? "Enregistrement..." : "Terminer"}
+            </Button>
           )}
         </div>
       </div>
