@@ -24,6 +24,7 @@ import CreateModulePage from "./pages/teacher/CreateModulePage";
 import CreateQuizPage from "./pages/teacher/CreateQuizPage";
 import AchievementsPage from "./pages/AchievementsPage";
 import LeaderboardPage from "./pages/LeaderboardPage";
+import MessagesPage from "./pages/MessagesPage";
 
 const queryClient = new QueryClient();
 
