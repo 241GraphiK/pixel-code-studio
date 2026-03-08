@@ -43,7 +43,7 @@ export default function RichTextEditor({ value, onChange, placeholder = "Rédige
     if (!editor) return;
     const normalized = normalizeContent(value);
     if (editor.getHTML() !== normalized) {
-      editor.commands.setContent(normalized, false);
+      editor.commands.setContent(normalized, { emitUpdate: false });
     }
   }, [editor, value]);
 
