@@ -21,6 +21,7 @@ const navItems: NavItem[] = [
   { label: "Modules", href: "/modules", icon: BookOpen, roles: ["student", "teacher", "admin"] },
   { label: "QCM", href: "/quizzes", icon: FileQuestion, roles: ["student", "teacher", "admin"] },
   { label: "Classes", href: "/classes", icon: Users, roles: ["student", "teacher", "admin"] },
+  { label: "Mes modules", href: "/teacher/modules", icon: BookOpen, roles: ["teacher"] },
   { label: "Statistiques", href: "/stats", icon: BarChart3, roles: ["student", "teacher", "admin"] },
   { label: "Utilisateurs", href: "/admin/users", icon: UserCog, roles: ["admin"] },
   { label: "Administration", href: "/admin", icon: Shield, roles: ["admin"] },
