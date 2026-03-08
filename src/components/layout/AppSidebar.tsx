@@ -93,6 +93,8 @@ export default function AppSidebar() {
       </nav>
 
       <div className="border-t border-border p-3 space-y-2">
+        <NotificationBell collapsed={collapsed} />
+        
         <button
           onClick={toggleTheme}
           className={cn(
