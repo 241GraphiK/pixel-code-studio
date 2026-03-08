@@ -1,32 +1,48 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { GraduationCap, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function RegisterPage() {
   const [form, setForm] = useState({ name: "", email: "", password: "", confirmPassword: "", role: "student", institution: "", field: "", level: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { signUp } = useAuth();
+  const navigate = useNavigate();
 
   const update = (key: string, value: string) => setForm((f) => ({ ...f, [key]: value }));
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (form.password !== form.confirmPassword) {
       toast({ title: "Erreur", description: "Les mots de passe ne correspondent pas.", variant: "destructive" });
       return;
     }
+    if (form.password.length < 6) {
+      toast({ title: "Erreur", description: "Le mot de passe doit contenir au moins 6 caractères.", variant: "destructive" });
+      return;
+    }
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      toast({ title: "Inscription réussie !", description: "Bienvenue sur Mentor." });
-      window.location.href = "/dashboard";
-    }, 1000);
+    const { error } = await signUp(form.email, form.password, {
+      name: form.name,
+      role: form.role,
+      institution: form.institution,
+      field: form.field,
+      level: form.level,
+    });
+    setLoading(false);
+    if (error) {
+      toast({ title: "Erreur", description: error, variant: "destructive" });
+    } else {
+      toast({ title: "Inscription réussie !", description: "Vérifiez votre email pour confirmer votre compte." });
+      navigate("/login");
+    }
   };
 
   return (

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, BookOpen, FileQuestion, Users, BarChart3,
   Settings, GraduationCap, Moon, Sun, LogOut, Menu, X,
@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/use-theme";
-import { currentUser, type UserRole } from "@/lib/mock-data";
+import { useAuth, type UserRole } from "@/hooks/use-auth";
 
 interface NavItem {
   label: string;
@@ -29,19 +29,29 @@ const navItems: NavItem[] = [
 
 export default function AppSidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
+  const { profile, signOut } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const userRole = currentUser.role;
+  const userRole = (profile?.role || "student") as UserRole;
   const filteredItems = navItems.filter((item) => item.roles.includes(userRole));
 
   const roleLabel = userRole === "student" ? "Étudiant" : userRole === "teacher" ? "Enseignant" : "Administrateur";
   const roleColor = userRole === "student" ? "text-primary" : userRole === "teacher" ? "text-success" : "text-warning";
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/login");
+  };
+
+  const initials = profile?.name
+    ? profile.name.split(" ").map(n => n[0]).join("").toUpperCase()
+    : "?";
+
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
-      {/* Logo */}
       <div className={cn("flex items-center gap-3 px-4 py-5 border-b border-border", collapsed && "justify-center px-2")}>
         <div className="flex items-center justify-center w-9 h-9 rounded-lg gradient-primary">
           <GraduationCap className="w-5 h-5 text-primary-foreground" />
@@ -54,7 +64,6 @@ export default function AppSidebar() {
         )}
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {filteredItems.map((item) => {
           const isActive = location.pathname === item.href || location.pathname.startsWith(item.href + "/");
@@ -78,7 +87,6 @@ export default function AppSidebar() {
         })}
       </nav>
 
-      {/* Footer */}
       <div className="border-t border-border p-3 space-y-2">
         <button
           onClick={toggleTheme}
@@ -91,8 +99,8 @@ export default function AppSidebar() {
           {!collapsed && <span>{theme === "dark" ? "Mode clair" : "Mode sombre"}</span>}
         </button>
 
-        <Link
-          to="/login"
+        <button
+          onClick={handleSignOut}
           className={cn(
             "flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors",
             collapsed && "justify-center px-2"
@@ -100,17 +108,16 @@ export default function AppSidebar() {
         >
           <LogOut className="w-5 h-5" />
           {!collapsed && <span>Déconnexion</span>}
-        </Link>
+        </button>
 
-        {/* User info */}
-        {!collapsed && (
+        {!collapsed && profile && (
           <div className="flex items-center gap-3 px-3 py-2 mt-1">
             <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center text-xs font-bold text-primary-foreground">
-              {currentUser.name.split(" ").map(n => n[0]).join("")}
+              {initials}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">{currentUser.name}</p>
-              <p className="text-xs text-muted-foreground truncate">{currentUser.email}</p>
+              <p className="text-sm font-medium text-foreground truncate">{profile.name}</p>
+              <p className="text-xs text-muted-foreground truncate">{profile.email}</p>
             </div>
           </div>
         )}
@@ -120,7 +127,6 @@ export default function AppSidebar() {
 
   return (
     <>
-      {/* Mobile toggle */}
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
         className="fixed top-4 left-4 z-50 md:hidden p-2 rounded-lg bg-card border border-border shadow-medium"
@@ -128,12 +134,10 @@ export default function AppSidebar() {
         {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
       </button>
 
-      {/* Mobile overlay */}
       {mobileOpen && (
         <div className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden" onClick={() => setMobileOpen(false)} />
       )}
 
-      {/* Mobile sidebar */}
       <aside className={cn(
         "fixed inset-y-0 left-0 z-40 w-64 bg-card border-r border-border transform transition-transform duration-300 md:hidden",
         mobileOpen ? "translate-x-0" : "-translate-x-full"
@@ -141,7 +145,6 @@ export default function AppSidebar() {
         <SidebarContent />
       </aside>
 
-      {/* Desktop sidebar */}
       <aside className={cn(
         "hidden md:flex flex-col h-screen bg-card border-r border-border transition-all duration-300 sticky top-0",
         collapsed ? "w-16" : "w-64"
