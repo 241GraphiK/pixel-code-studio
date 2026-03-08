@@ -7,7 +7,7 @@ import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, R
 const COLORS = ["hsl(221, 83%, 53%)", "hsl(142, 71%, 45%)", "hsl(38, 92%, 50%)", "hsl(199, 89%, 48%)", "hsl(0, 84%, 60%)", "hsl(270, 70%, 55%)"];
 
 export default function StatsPage() {
-  const myProgress = studentProgress.find((s) => s.studentId === currentUser.id);
+  const myProgress = studentProgress[0]; // Will be replaced with real user data later
 
   const completionData = [
     { name: "Terminés", value: myProgress?.completedModules || 0 },

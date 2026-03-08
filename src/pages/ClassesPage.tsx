@@ -58,7 +58,7 @@ export default function ClassesPage() {
                 </div>
               </DialogContent>
             </Dialog>
-            {currentUser.role !== "student" && (
+            {profile?.role !== "student" && (
               <Button size="sm" className="gap-1"><Plus className="w-4 h-4" /> Créer</Button>
             )}
           </div>
