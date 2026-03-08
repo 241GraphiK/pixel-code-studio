@@ -58,6 +58,49 @@ export default function CreateQuizPage() {
     });
   }, [user]);
 
+  // Load courses when module changes
+  useEffect(() => {
+    if (!moduleId) { setCoursesForModule([]); return; }
+    supabase.from("courses").select("id, title, content").eq("module_id", moduleId).order("order").then(({ data }) => {
+      if (data) setCoursesForModule(data);
+    });
+  }, [moduleId]);
+
+  const handleAiGenerate = async () => {
+    const course = coursesForModule.find(c => c.id === aiCourseId);
+    if (!course?.content?.trim()) {
+      toast.error("Le cours sélectionné n'a pas de contenu");
+      return;
+    }
+    setGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-quiz", {
+        body: { courseContent: course.content, courseTitle: course.title, numQuestions: aiNumQuestions, difficulty: aiDifficulty },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (data?.questions?.length) {
+        setQuestions(data.questions.map((q: any) => ({
+          text: q.text || "",
+          explanation: q.explanation || "",
+          difficulty: q.difficulty || "medium",
+          points: q.points || 1,
+          options: (q.options || []).map((o: any) => ({ text: o.text || "", isCorrect: !!o.isCorrect })),
+        })));
+        if (!title.trim()) setTitle(`QCM - ${course.title}`);
+        setDifficulty(aiDifficulty);
+        toast.success(`${data.questions.length} questions générées par IA !`);
+        setAiDialogOpen(false);
+      } else {
+        toast.error("Aucune question générée");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Erreur lors de la génération IA");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   const addQuestion = () => setQuestions([...questions, emptyQuestion()]);
   const removeQuestion = (i: number) => setQuestions(questions.filter((_, idx) => idx !== i));
 
