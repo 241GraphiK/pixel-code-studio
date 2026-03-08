@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, BookOpen, FileQuestion, Users, BarChart3,
   Settings, GraduationCap, Moon, Sun, LogOut, Menu, X,
-  Shield, UserCog, ChevronDown, Trophy, Crown
+  Shield, UserCog, ChevronDown, Trophy, Crown, MessageSquare
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/use-theme";
