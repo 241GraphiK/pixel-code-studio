@@ -1,7 +1,25 @@
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { Bold, Heading2, Italic, List, ListOrdered, Redo2, Strikethrough, Undo2 } from "lucide-react";
+import Link from "@tiptap/extension-link";
+import Image from "@tiptap/extension-image";
+import TextAlign from "@tiptap/extension-text-align";
+import {
+  Bold,
+  Heading2,
+  Italic,
+  List,
+  ListOrdered,
+  Redo2,
+  Strikethrough,
+  Undo2,
+  Link as LinkIcon,
+  Image as ImageIcon,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  AlignJustify
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +44,20 @@ export default function RichTextEditor({ value, onChange, placeholder = "Rédige
       StarterKit.configure({
         heading: { levels: [2, 3] },
       }),
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+      }),
+      Link.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          class: 'text-primary underline underline-offset-4',
+        },
+      }),
+      Image.configure({
+        HTMLAttributes: {
+          class: 'rounded-md border border-border max-w-full',
+        },
+      }),
     ],
     content: normalizeContent(value),
     editorProps: {
@@ -46,6 +78,24 @@ export default function RichTextEditor({ value, onChange, placeholder = "Rédige
       editor.commands.setContent(normalized, { emitUpdate: false });
     }
   }, [editor, value]);
+
+  const setLink = useCallback(() => {
+    const previousUrl = editor?.getAttributes('link').href;
+    const url = window.prompt('URL du lien', previousUrl);
+    if (url === null) return;
+    if (url === '') {
+      editor?.chain().focus().extendMarkRange('link').unsetLink().run();
+      return;
+    }
+    editor?.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+  }, [editor]);
+
+  const addImage = useCallback(() => {
+    const url = window.prompt('URL de l\'image');
+    if (url) {
+      editor?.chain().focus().setImage({ src: url }).run();
+    }
+  }, [editor]);
 
   if (!editor) return null;
 
@@ -70,6 +120,29 @@ export default function RichTextEditor({ value, onChange, placeholder = "Rédige
         <Button type="button" variant="ghost" size="icon" onClick={() => editor.chain().focus().toggleOrderedList().run()} className={cn(editor.isActive("orderedList") && "bg-accent text-accent-foreground")}>
           <ListOrdered className="h-4 w-4" />
         </Button>
+        
+        <div className="mx-1 h-6 w-px bg-border" />
+        <Button type="button" variant="ghost" size="icon" onClick={setLink} className={cn(editor.isActive("link") && "bg-accent text-accent-foreground")}>
+          <LinkIcon className="h-4 w-4" />
+        </Button>
+        <Button type="button" variant="ghost" size="icon" onClick={addImage}>
+          <ImageIcon className="h-4 w-4" />
+        </Button>
+        
+        <div className="mx-1 h-6 w-px bg-border" />
+        <Button type="button" variant="ghost" size="icon" onClick={() => editor.chain().focus().setTextAlign('left').run()} className={cn(editor.isActive({ textAlign: 'left' }) && "bg-accent text-accent-foreground")}>
+          <AlignLeft className="h-4 w-4" />
+        </Button>
+        <Button type="button" variant="ghost" size="icon" onClick={() => editor.chain().focus().setTextAlign('center').run()} className={cn(editor.isActive({ textAlign: 'center' }) && "bg-accent text-accent-foreground")}>
+          <AlignCenter className="h-4 w-4" />
+        </Button>
+        <Button type="button" variant="ghost" size="icon" onClick={() => editor.chain().focus().setTextAlign('right').run()} className={cn(editor.isActive({ textAlign: 'right' }) && "bg-accent text-accent-foreground")}>
+          <AlignRight className="h-4 w-4" />
+        </Button>
+        <Button type="button" variant="ghost" size="icon" onClick={() => editor.chain().focus().setTextAlign('justify').run()} className={cn(editor.isActive({ textAlign: 'justify' }) && "bg-accent text-accent-foreground")}>
+          <AlignJustify className="h-4 w-4" />
+        </Button>
+
         <div className="mx-1 h-6 w-px bg-border" />
         <Button type="button" variant="ghost" size="icon" onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().chain().focus().undo().run()}>
           <Undo2 className="h-4 w-4" />
