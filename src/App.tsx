@@ -19,6 +19,9 @@ import StatsPage from "./pages/StatsPage";
 import SettingsPage from "./pages/SettingsPage";
 import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
+import TeacherModulesPage from "./pages/teacher/TeacherModulesPage";
+import CreateModulePage from "./pages/teacher/CreateModulePage";
+import CreateQuizPage from "./pages/teacher/CreateQuizPage";
 
 const queryClient = new QueryClient();
 
