@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, BookOpen, FileQuestion, Users, BarChart3,
   Settings, GraduationCap, Moon, Sun, LogOut, Menu, X,
-  Shield, UserCog, ChevronDown, Trophy
+  Shield, UserCog, ChevronDown, Trophy, Crown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/use-theme";
@@ -22,6 +22,7 @@ const navItems: NavItem[] = [
   { label: "QCM", href: "/quizzes", icon: FileQuestion, roles: ["student", "teacher", "admin"] },
   { label: "Classes", href: "/classes", icon: Users, roles: ["student", "teacher", "admin"] },
   { label: "Succès", href: "/achievements", icon: Trophy, roles: ["student", "teacher", "admin"] },
+  { label: "Classement", href: "/leaderboard", icon: Crown, roles: ["student", "teacher", "admin"] },
   { label: "Mes modules", href: "/teacher/modules", icon: BookOpen, roles: ["teacher"] },
   { label: "Statistiques", href: "/stats", icon: BarChart3, roles: ["student", "teacher", "admin"] },
   { label: "Utilisateurs", href: "/admin/users", icon: UserCog, roles: ["admin"] },
