@@ -21,7 +21,7 @@ export default function Dashboard() {
   const [totalCourses, setTotalCourses] = useState(0);
   const [recentModules, setRecentModules] = useState<any[]>([]);
   const [recentQuizzes, setRecentQuizzes] = useState<any[]>([]);
-  const [leaderboard, setLeaderboard] = useState<{ name: string; xp: number }[]>([]);
+  const [leaderboard, setLeaderboard] = useState<{ name: string; xp: number; avatar_url: string | null; gamification_level: number }[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchLeaderboard = async () => {
