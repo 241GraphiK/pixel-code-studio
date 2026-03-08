@@ -1,20 +1,112 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, BookOpen, Play, FileText, Video, Link2, Dumbbell, CheckCircle2, Circle, Clock, Users } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { modules, courses, quizzes } from "@/lib/mock-data";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+
+interface ModuleData {
+  id: string; title: string; description: string | null; field: string; level: string; teacher_id: string | null;
+}
+interface CourseData {
+  id: string; title: string; content: string | null; duration: string | null; order: number; module_id: string;
+}
+interface QuizData {
+  id: string; title: string; duration: number; module_id: string; questions_count?: number;
+}
+interface ResourceData {
+  id: string; title: string; type: string; url: string; course_id: string;
+}
 
 export default function ModuleDetailPage() {
   const { id } = useParams();
-  const mod = modules.find((m) => m.id === id) || modules[0];
-  const moduleCourses = courses.filter((c) => c.moduleId === mod.id);
-  const moduleQuizzes = quizzes.filter((q) => q.moduleId === mod.id);
-  const [selectedCourse, setSelectedCourse] = useState(moduleCourses[0]?.id);
+  const { user } = useAuth();
+  const [mod, setMod] = useState<ModuleData | null>(null);
+  const [courses, setCourses] = useState<CourseData[]>([]);
+  const [quizzes, setQuizzes] = useState<QuizData[]>([]);
+  const [resources, setResources] = useState<ResourceData[]>([]);
+  const [completedCourses, setCompletedCourses] = useState<Set<string>>(new Set());
+  const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
+  const [teacherName, setTeacherName] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  const course = moduleCourses.find((c) => c.id === selectedCourse);
+  useEffect(() => {
+    const fetch = async () => {
+      if (!id) return;
+
+      const [modRes, coursesRes, quizzesRes] = await Promise.all([
+        supabase.from("modules").select("*").eq("id", id).maybeSingle(),
+        supabase.from("courses").select("*").eq("module_id", id).order("order"),
+        supabase.from("quizzes").select("id, title, duration, module_id").eq("module_id", id),
+      ]);
+
+      if (modRes.data) {
+        setMod(modRes.data);
+        if (modRes.data.teacher_id) {
+          const { data: prof } = await supabase.from("profiles").select("name").eq("id", modRes.data.teacher_id).maybeSingle();
+          if (prof) setTeacherName(prof.name);
+        }
+      }
+
+      if (coursesRes.data) {
+        setCourses(coursesRes.data);
+        if (coursesRes.data.length > 0) setSelectedCourse(coursesRes.data[0].id);
+
+        // Fetch resources for all courses
+        const courseIds = coursesRes.data.map(c => c.id);
+        if (courseIds.length > 0) {
+          const { data: res } = await supabase.from("resources").select("*").in("course_id", courseIds);
+          if (res) setResources(res);
+        }
+      }
+
+      if (quizzesRes.data) {
+        // Get question counts
+        const quizIds = quizzesRes.data.map(q => q.id);
+        let qCounts: Record<string, number> = {};
+        if (quizIds.length > 0) {
+          const { data: questions } = await supabase.from("questions").select("quiz_id").in("quiz_id", quizIds);
+          questions?.forEach(q => { qCounts[q.quiz_id] = (qCounts[q.quiz_id] || 0) + 1; });
+        }
+        setQuizzes(quizzesRes.data.map(q => ({ ...q, questions_count: qCounts[q.id] || 0 })));
+      }
+
+      // Fetch completed courses
+      if (user) {
+        const { data: progress } = await supabase
+          .from("course_progress")
+          .select("course_id")
+          .eq("user_id", user.id)
+          .eq("completed", true);
+        if (progress) setCompletedCourses(new Set(progress.map(p => p.course_id)));
+      }
+
+      setLoading(false);
+    };
+    fetch();
+  }, [id, user]);
+
+  const course = courses.find(c => c.id === selectedCourse);
+  const courseResources = resources.filter(r => r.course_id === selectedCourse);
+
+  const handleMarkComplete = async () => {
+    if (!user || !selectedCourse) return;
+    const { error } = await supabase
+      .from("course_progress")
+      .upsert({ user_id: user.id, course_id: selectedCourse, completed: true, completed_at: new Date().toISOString() },
+        { onConflict: "user_id,course_id" as any });
+    if (error) {
+      // If upsert fails due to no unique constraint, try insert
+      await supabase.from("course_progress").insert({
+        user_id: user.id, course_id: selectedCourse, completed: true, completed_at: new Date().toISOString()
+      });
+    }
+    setCompletedCourses(prev => new Set([...prev, selectedCourse]));
+    toast.success("Cours marqué comme terminé !");
+  };
 
   const resourceIcon = (type: string) => {
     if (type === "pdf") return <FileText className="w-4 h-4" />;
@@ -23,6 +115,31 @@ export default function ModuleDetailPage() {
     return <Dumbbell className="w-4 h-4" />;
   };
 
+  const completedCount = courses.filter(c => completedCourses.has(c.id)).length;
+  const progressPercent = courses.length > 0 ? Math.round((completedCount / courses.length) * 100) : 0;
+
+  if (loading) {
+    return (
+      <AppLayout>
+        <div className="flex justify-center py-12">
+          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (!mod) {
+    return (
+      <AppLayout>
+        <div className="text-center py-12 text-muted-foreground">
+          <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-30" />
+          <p className="font-medium">Module introuvable</p>
+          <Link to="/modules" className="text-sm text-primary hover:underline">Retour aux modules</Link>
+        </div>
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout>
       <div className="space-y-6 animate-fade-in">
@@ -30,7 +147,6 @@ export default function ModuleDetailPage() {
           <ArrowLeft className="w-4 h-4" /> Retour aux modules
         </Link>
 
-        {/* Module header */}
         <div className="bg-card rounded-xl border border-border p-6 shadow-soft">
           <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
             <div className="space-y-2">
@@ -41,26 +157,26 @@ export default function ModuleDetailPage() {
               <h1 className="text-2xl font-bold text-foreground">{mod.title}</h1>
               <p className="text-muted-foreground">{mod.description}</p>
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1"><BookOpen className="w-4 h-4" /> {mod.courseCount} cours</span>
-                <span className="flex items-center gap-1"><Users className="w-4 h-4" /> {mod.studentCount} étudiants</span>
-                <span>{mod.teacherName}</span>
+                <span className="flex items-center gap-1"><BookOpen className="w-4 h-4" /> {courses.length} cours</span>
+                {teacherName && <span>{teacherName}</span>}
               </div>
             </div>
             <div className="w-full md:w-48 space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Progression</span>
-                <span className="font-medium text-foreground">{mod.progress}%</span>
+                <span className="font-medium text-foreground">{progressPercent}%</span>
               </div>
-              <Progress value={mod.progress} className="h-2" />
+              <div className="w-full h-2 rounded-full bg-muted">
+                <div className="h-2 rounded-full bg-primary transition-all" style={{ width: `${progressPercent}%` }} />
+              </div>
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Course list */}
           <div className="space-y-2">
             <h2 className="font-semibold text-foreground mb-3">Cours</h2>
-            {moduleCourses.map((c) => (
+            {courses.map(c => (
               <button
                 key={c.id}
                 onClick={() => setSelectedCourse(c.id)}
@@ -69,26 +185,27 @@ export default function ModuleDetailPage() {
                   selectedCourse === c.id ? "bg-primary text-primary-foreground" : "bg-card border border-border hover:bg-accent"
                 )}
               >
-                {c.completed ? <CheckCircle2 className="w-4 h-4 shrink-0" /> : <Circle className="w-4 h-4 shrink-0" />}
+                {completedCourses.has(c.id) ? <CheckCircle2 className="w-4 h-4 shrink-0" /> : <Circle className="w-4 h-4 shrink-0" />}
                 <div className="flex-1 min-w-0">
                   <p className="font-medium truncate">{c.title}</p>
-                  <p className={cn("text-xs", selectedCourse === c.id ? "opacity-70" : "text-muted-foreground")}>
-                    <Clock className="w-3 h-3 inline mr-1" />{c.duration}
-                  </p>
+                  {c.duration && (
+                    <p className={cn("text-xs", selectedCourse === c.id ? "opacity-70" : "text-muted-foreground")}>
+                      <Clock className="w-3 h-3 inline mr-1" />{c.duration}
+                    </p>
+                  )}
                 </div>
               </button>
             ))}
 
-            {/* Module quizzes */}
-            {moduleQuizzes.length > 0 && (
+            {quizzes.length > 0 && (
               <>
                 <h2 className="font-semibold text-foreground mt-6 mb-3">QCM</h2>
-                {moduleQuizzes.map((q) => (
+                {quizzes.map(q => (
                   <Link key={q.id} to={`/quizzes/${q.id}`} className="flex items-center gap-3 p-3 rounded-lg bg-card border border-border hover:bg-accent transition-all text-sm">
                     <Play className="w-4 h-4 text-primary shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-foreground truncate">{q.title}</p>
-                      <p className="text-xs text-muted-foreground">{q.questions.length} questions · {q.duration} min</p>
+                      <p className="text-xs text-muted-foreground">{q.questions_count} questions · {q.duration} min</p>
                     </div>
                   </Link>
                 ))}
@@ -96,43 +213,37 @@ export default function ModuleDetailPage() {
             )}
           </div>
 
-          {/* Course content */}
           <div className="lg:col-span-2">
             {course ? (
               <div className="bg-card rounded-xl border border-border p-6 shadow-soft">
                 <h2 className="text-xl font-bold text-foreground mb-2">{course.title}</h2>
                 <div className="flex items-center gap-3 text-sm text-muted-foreground mb-6">
-                  <span><Clock className="w-4 h-4 inline mr-1" />{course.duration}</span>
-                  {course.completed && <span className="text-success flex items-center gap-1"><CheckCircle2 className="w-4 h-4" /> Terminé</span>}
+                  {course.duration && <span><Clock className="w-4 h-4 inline mr-1" />{course.duration}</span>}
+                  {completedCourses.has(course.id) && <span className="text-success flex items-center gap-1"><CheckCircle2 className="w-4 h-4" /> Terminé</span>}
                 </div>
-                <div className="prose prose-sm max-w-none text-foreground">
-                  <p>{course.content}</p>
-                  <p className="text-muted-foreground mt-4">
-                    Ce cours couvre les concepts fondamentaux avec des exemples pratiques et des exercices.
-                    Le contenu détaillé sera disponible une fois la base de données connectée.
-                  </p>
+                <div className="prose prose-sm max-w-none text-foreground whitespace-pre-wrap">
+                  {course.content || "Contenu à venir..."}
                 </div>
 
-                {course.resources.length > 0 && (
+                {courseResources.length > 0 && (
                   <div className="mt-6 pt-6 border-t border-border">
                     <h3 className="font-semibold text-foreground mb-3">Ressources</h3>
                     <div className="space-y-2">
-                      {course.resources.map((r) => (
-                        <div key={r.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                      {courseResources.map(r => (
+                        <a key={r.id} href={r.url || "#"} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
                           <div className="text-primary">{resourceIcon(r.type)}</div>
                           <span className="text-sm font-medium text-foreground">{r.title}</span>
                           <span className="text-xs text-muted-foreground uppercase ml-auto">{r.type}</span>
-                        </div>
+                        </a>
                       ))}
                     </div>
                   </div>
                 )}
 
                 <div className="mt-6 flex gap-3">
-                  {!course.completed && (
-                    <Button>Marquer comme terminé</Button>
+                  {!completedCourses.has(course.id) && (
+                    <Button onClick={handleMarkComplete}>Marquer comme terminé</Button>
                   )}
-                  <Button variant="outline">Cours suivant →</Button>
                 </div>
               </div>
             ) : (
