@@ -247,16 +247,31 @@ export default function ModuleDetailPage() {
                   {course.content || "Contenu à venir..."}
                 </div>
 
-                {courseResources.length > 0 && (
+                {(courseResources.length > 0 || (isTeacher && mod?.teacher_id === user?.id)) && (
                   <div className="mt-6 pt-6 border-t border-border">
-                    <h3 className="font-semibold text-foreground mb-3">Ressources</h3>
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-semibold text-foreground">Ressources</h3>
+                      {isTeacher && mod?.teacher_id === user?.id && selectedCourse && (
+                        <ResourceUpload courseId={selectedCourse} onUploaded={refetchResources} />
+                      )}
+                    </div>
                     <div className="space-y-2">
                       {courseResources.map(r => (
-                        <a key={r.id} href={r.url || "#"} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-                          <div className="text-primary">{resourceIcon(r.type)}</div>
-                          <span className="text-sm font-medium text-foreground">{r.title}</span>
-                          <span className="text-xs text-muted-foreground uppercase ml-auto">{r.type}</span>
-                        </a>
+                        <div key={r.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors group">
+                          <a href={r.url || "#"} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 flex-1 min-w-0">
+                            <div className="text-primary">{resourceIcon(r.type)}</div>
+                            <span className="text-sm font-medium text-foreground truncate">{r.title}</span>
+                            <span className="text-xs text-muted-foreground uppercase ml-auto shrink-0">{r.type}</span>
+                          </a>
+                          {isTeacher && mod?.teacher_id === user?.id && (
+                            <button
+                              onClick={() => handleDeleteResource(r.id)}
+                              className="shrink-0 p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
                       ))}
                     </div>
                   </div>
