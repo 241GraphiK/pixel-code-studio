@@ -13,6 +13,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 export default function Dashboard() {
   const { profile } = useAuth();
   const firstName = profile?.name?.split(" ")[0] || "Utilisateur";
+  const { xp, level, xpProgress, xpInCurrentLevel, badges, userBadges, earnedBadgeIds } = useGamification();
 
   // For now use mock progress data — will be replaced with real data later
   const myProgress = studentProgress[0];
