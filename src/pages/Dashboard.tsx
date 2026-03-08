@@ -24,62 +24,54 @@ export default function Dashboard() {
   const [leaderboard, setLeaderboard] = useState<{ name: string; xp: number }[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchLeaderboard = async () => {
+    const { data: topUsers } = await supabase
+      .from("profiles")
+      .select("name, xp, avatar_url, gamification_level")
+      .order("xp", { ascending: false })
+      .limit(10);
+    setLeaderboard(topUsers || []);
+  };
+
   useEffect(() => {
-    const fetch = async () => {
+    const fetchData = async () => {
       if (!user) return;
 
-      // Quiz attempts stats
-      const { data: attempts } = await supabase
-        .from("quiz_attempts")
-        .select("score, max_score")
-        .eq("user_id", user.id);
-      if (attempts) {
-        setQuizCount(attempts.length);
-        if (attempts.length > 0) {
+      const [attemptsRes, progressRes, coursesRes, modsRes, quizzesRes] = await Promise.all([
+        supabase.from("quiz_attempts").select("score, max_score").eq("user_id", user.id),
+        supabase.from("course_progress").select("id").eq("user_id", user.id).eq("completed", true),
+        supabase.from("courses").select("id"),
+        supabase.from("modules").select("id, title, field, level").order("created_at", { ascending: false }).limit(3),
+        supabase.from("quizzes").select("id, title, difficulty, duration, description").order("created_at", { ascending: false }).limit(3),
+      ]);
+
+      if (attemptsRes.data) {
+        setQuizCount(attemptsRes.data.length);
+        if (attemptsRes.data.length > 0) {
           setAvgScore(Math.round(
-            attempts.reduce((s, a) => s + (a.max_score > 0 ? (a.score / a.max_score) * 100 : 0), 0) / attempts.length
+            attemptsRes.data.reduce((s, a) => s + (a.max_score > 0 ? (a.score / a.max_score) * 100 : 0), 0) / attemptsRes.data.length
           ));
         }
       }
+      setCompletedCourses(progressRes.data?.length || 0);
+      setTotalCourses(coursesRes.data?.length || 0);
+      setRecentModules(modsRes.data || []);
+      setRecentQuizzes(quizzesRes.data || []);
 
-      // Completed courses
-      const { data: progress } = await supabase
-        .from("course_progress")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("completed", true);
-      setCompletedCourses(progress?.length || 0);
-
-      const { data: allCourses } = await supabase.from("courses").select("id");
-      setTotalCourses(allCourses?.length || 0);
-
-      // Recent modules
-      const { data: mods } = await supabase
-        .from("modules")
-        .select("id, title, field, level")
-        .order("created_at", { ascending: false })
-        .limit(3);
-      setRecentModules(mods || []);
-
-      // Recent quizzes
-      const { data: quizzes } = await supabase
-        .from("quizzes")
-        .select("id, title, difficulty, duration, description")
-        .order("created_at", { ascending: false })
-        .limit(3);
-      setRecentQuizzes(quizzes || []);
-
-      // Leaderboard by XP
-      const { data: topUsers } = await supabase
-        .from("profiles")
-        .select("name, xp")
-        .order("xp", { ascending: false })
-        .limit(5);
-      setLeaderboard(topUsers || []);
-
+      await fetchLeaderboard();
       setLoading(false);
     };
-    fetch();
+    fetchData();
+
+    // Realtime leaderboard
+    const channel = supabase
+      .channel('leaderboard-realtime')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles' }, () => {
+        fetchLeaderboard();
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, [user]);
 
   return (
