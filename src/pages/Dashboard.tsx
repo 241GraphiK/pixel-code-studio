@@ -1,8 +1,11 @@
-import { BookOpen, FileQuestion, Trophy, Clock, TrendingUp, Users } from "lucide-react";
+import { BookOpen, FileQuestion, Trophy, Clock, TrendingUp, Users, Star } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
 import StatCard from "@/components/shared/StatCard";
 import { modules, quizzes, studentProgress, weeklyScores } from "@/lib/mock-data";
 import { useAuth } from "@/hooks/use-auth";
+import { useGamification } from "@/hooks/use-gamification";
+import XpBar from "@/components/gamification/XpBar";
+import BadgeCard from "@/components/gamification/BadgeCard";
 import { Link } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
