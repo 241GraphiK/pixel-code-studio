@@ -241,9 +241,61 @@ export default function CreateQuizPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="font-semibold text-foreground">Questions ({questions.length})</h2>
-              <Button type="button" variant="outline" size="sm" onClick={addQuestion}>
-                <Plus className="w-4 h-4 mr-1" /> Ajouter
-              </Button>
+              <div className="flex gap-2">
+                <Dialog open={aiDialogOpen} onOpenChange={setAiDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button type="button" variant="outline" size="sm" disabled={!moduleId || coursesForModule.length === 0}>
+                      <Sparkles className="w-4 h-4 mr-1 text-amber-500" /> Générer par IA
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <Sparkles className="w-5 h-5 text-amber-500" /> Génération IA de QCM
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 pt-2">
+                      <div className="space-y-2">
+                        <Label>Cours source *</Label>
+                        <Select value={aiCourseId} onValueChange={setAiCourseId}>
+                          <SelectTrigger><SelectValue placeholder="Sélectionner un cours" /></SelectTrigger>
+                          <SelectContent>
+                            {coursesForModule.map(c => (
+                              <SelectItem key={c.id} value={c.id} disabled={!c.content?.trim()}>
+                                {c.title} {!c.content?.trim() ? "(vide)" : ""}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <Label>Nombre de questions</Label>
+                          <Input type="number" min={2} max={20} value={aiNumQuestions} onChange={e => setAiNumQuestions(Number(e.target.value))} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Difficulté</Label>
+                          <Select value={aiDifficulty} onValueChange={setAiDifficulty}>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="easy">Facile</SelectItem>
+                              <SelectItem value="medium">Moyen</SelectItem>
+                              <SelectItem value="hard">Difficile</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground">L'IA va analyser le contenu du cours et générer automatiquement des questions pertinentes.</p>
+                      <Button onClick={handleAiGenerate} disabled={generating || !aiCourseId} className="w-full">
+                        {generating ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Génération en cours...</> : <><Sparkles className="w-4 h-4 mr-2" /> Générer les questions</>}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+                <Button type="button" variant="outline" size="sm" onClick={addQuestion}>
+                  <Plus className="w-4 h-4 mr-1" /> Ajouter
+                </Button>
+              </div>
             </div>
 
             {questions.map((q, qi) => (
