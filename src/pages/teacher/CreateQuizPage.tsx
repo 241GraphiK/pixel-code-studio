@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, FileQuestion, Plus, Trash2, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, FileQuestion, Plus, Trash2, CheckCircle2, Sparkles, Loader2 } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -29,6 +30,12 @@ export default function CreateQuizPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [saving, setSaving] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [aiDialogOpen, setAiDialogOpen] = useState(false);
+  const [aiCourseId, setAiCourseId] = useState("");
+  const [aiNumQuestions, setAiNumQuestions] = useState(5);
+  const [aiDifficulty, setAiDifficulty] = useState("medium");
+  const [coursesForModule, setCoursesForModule] = useState<{ id: string; title: string; content: string | null }[]>([]);
 
   const [modules, setModules] = useState<{ id: string; title: string }[]>([]);
   const [moduleId, setModuleId] = useState("");
@@ -50,6 +57,49 @@ export default function CreateQuizPage() {
       if (data) setModules(data);
     });
   }, [user]);
+
+  // Load courses when module changes
+  useEffect(() => {
+    if (!moduleId) { setCoursesForModule([]); return; }
+    supabase.from("courses").select("id, title, content").eq("module_id", moduleId).order("order").then(({ data }) => {
+      if (data) setCoursesForModule(data);
+    });
+  }, [moduleId]);
+
+  const handleAiGenerate = async () => {
+    const course = coursesForModule.find(c => c.id === aiCourseId);
+    if (!course?.content?.trim()) {
+      toast.error("Le cours sélectionné n'a pas de contenu");
+      return;
+    }
+    setGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-quiz", {
+        body: { courseContent: course.content, courseTitle: course.title, numQuestions: aiNumQuestions, difficulty: aiDifficulty },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (data?.questions?.length) {
+        setQuestions(data.questions.map((q: any) => ({
+          text: q.text || "",
+          explanation: q.explanation || "",
+          difficulty: q.difficulty || "medium",
+          points: q.points || 1,
+          options: (q.options || []).map((o: any) => ({ text: o.text || "", isCorrect: !!o.isCorrect })),
+        })));
+        if (!title.trim()) setTitle(`QCM - ${course.title}`);
+        setDifficulty(aiDifficulty);
+        toast.success(`${data.questions.length} questions générées par IA !`);
+        setAiDialogOpen(false);
+      } else {
+        toast.error("Aucune question générée");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Erreur lors de la génération IA");
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const addQuestion = () => setQuestions([...questions, emptyQuestion()]);
   const removeQuestion = (i: number) => setQuestions(questions.filter((_, idx) => idx !== i));
@@ -191,9 +241,61 @@ export default function CreateQuizPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="font-semibold text-foreground">Questions ({questions.length})</h2>
-              <Button type="button" variant="outline" size="sm" onClick={addQuestion}>
-                <Plus className="w-4 h-4 mr-1" /> Ajouter
-              </Button>
+              <div className="flex gap-2">
+                <Dialog open={aiDialogOpen} onOpenChange={setAiDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button type="button" variant="outline" size="sm" disabled={!moduleId || coursesForModule.length === 0}>
+                      <Sparkles className="w-4 h-4 mr-1 text-amber-500" /> Générer par IA
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <Sparkles className="w-5 h-5 text-amber-500" /> Génération IA de QCM
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 pt-2">
+                      <div className="space-y-2">
+                        <Label>Cours source *</Label>
+                        <Select value={aiCourseId} onValueChange={setAiCourseId}>
+                          <SelectTrigger><SelectValue placeholder="Sélectionner un cours" /></SelectTrigger>
+                          <SelectContent>
+                            {coursesForModule.map(c => (
+                              <SelectItem key={c.id} value={c.id} disabled={!c.content?.trim()}>
+                                {c.title} {!c.content?.trim() ? "(vide)" : ""}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <Label>Nombre de questions</Label>
+                          <Input type="number" min={2} max={20} value={aiNumQuestions} onChange={e => setAiNumQuestions(Number(e.target.value))} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Difficulté</Label>
+                          <Select value={aiDifficulty} onValueChange={setAiDifficulty}>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="easy">Facile</SelectItem>
+                              <SelectItem value="medium">Moyen</SelectItem>
+                              <SelectItem value="hard">Difficile</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground">L'IA va analyser le contenu du cours et générer automatiquement des questions pertinentes.</p>
+                      <Button onClick={handleAiGenerate} disabled={generating || !aiCourseId} className="w-full">
+                        {generating ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Génération en cours...</> : <><Sparkles className="w-4 h-4 mr-2" /> Générer les questions</>}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+                <Button type="button" variant="outline" size="sm" onClick={addQuestion}>
+                  <Plus className="w-4 h-4 mr-1" /> Ajouter
+                </Button>
+              </div>
             </div>
 
             {questions.map((q, qi) => (
