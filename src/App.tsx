@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/hooks/use-theme";
+import { AuthProvider } from "@/hooks/use-auth";
+import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -23,27 +25,29 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/modules" element={<ModulesPage />} />
-            <Route path="/modules/:id" element={<ModuleDetailPage />} />
-            <Route path="/quizzes" element={<QuizzesPage />} />
-            <Route path="/quizzes/:id" element={<QuizTakePage />} />
-            <Route path="/classes" element={<ClassesPage />} />
-            <Route path="/stats" element={<StatsPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/admin" element={<AdminPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/modules" element={<ProtectedRoute><ModulesPage /></ProtectedRoute>} />
+              <Route path="/modules/:id" element={<ProtectedRoute><ModuleDetailPage /></ProtectedRoute>} />
+              <Route path="/quizzes" element={<ProtectedRoute><QuizzesPage /></ProtectedRoute>} />
+              <Route path="/quizzes/:id" element={<ProtectedRoute><QuizTakePage /></ProtectedRoute>} />
+              <Route path="/classes" element={<ProtectedRoute><ClassesPage /></ProtectedRoute>} />
+              <Route path="/stats" element={<ProtectedRoute><StatsPage /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+              <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
     </ThemeProvider>
   </QueryClientProvider>
 );

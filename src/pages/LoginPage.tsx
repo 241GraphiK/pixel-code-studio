@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { GraduationCap, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -12,21 +13,30 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { signIn, user } = useAuth();
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Redirect if already logged in
+  if (user) {
+    navigate("/dashboard", { replace: true });
+    return null;
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Mock login
-    setTimeout(() => {
-      setLoading(false);
+    const { error } = await signIn(email, password);
+    setLoading(false);
+    if (error) {
+      toast({ title: "Erreur de connexion", description: error, variant: "destructive" });
+    } else {
       toast({ title: "Connexion réussie", description: "Bienvenue sur Mentor !" });
-      window.location.href = "/dashboard";
-    }, 1000);
+      navigate("/dashboard");
+    }
   };
 
   return (
     <div className="min-h-screen flex">
-      {/* Left side - form */}
       <div className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-sm space-y-6">
           <div className="flex items-center gap-3">
@@ -53,13 +63,6 @@ export default function LoginPage() {
                 </button>
               </div>
             </div>
-            <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="rounded border-border" />
-                <span className="text-muted-foreground">Se souvenir de moi</span>
-              </label>
-              <Link to="/forgot-password" className="text-primary hover:underline">Mot de passe oublié ?</Link>
-            </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Connexion..." : "Se connecter"}
             </Button>
@@ -70,7 +73,6 @@ export default function LoginPage() {
           </p>
         </div>
       </div>
-      {/* Right side - decorative */}
       <div className="hidden lg:flex flex-1 items-center justify-center gradient-primary p-12">
         <div className="text-center space-y-4 text-primary-foreground">
           <GraduationCap className="w-16 h-16 mx-auto opacity-90" />

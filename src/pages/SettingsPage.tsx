@@ -7,17 +7,61 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTheme } from "@/hooks/use-theme";
-import { currentUser } from "@/lib/mock-data";
+import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function SettingsPage() {
   const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
-  const [name, setName] = useState(currentUser.name);
-  const [email, setEmail] = useState(currentUser.email);
+  const { profile, refreshProfile } = useAuth();
+  const [name, setName] = useState(profile?.name || "");
+  const [institution, setInstitution] = useState(profile?.institution || "");
+  const [field, setField] = useState(profile?.field || "");
   const [notifications, setNotifications] = useState({ email: true, push: true, quiz: true });
+  const [saving, setSaving] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-  const handleSave = () => toast({ title: "Paramètres sauvegardés !" });
+  const handleSaveProfile = async () => {
+    if (!profile) return;
+    setSaving(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ name, institution, field, updated_at: new Date().toISOString() } as any)
+      .eq("id", profile.id);
+    setSaving(false);
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    } else {
+      await refreshProfile();
+      toast({ title: "Profil mis à jour !" });
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (newPassword !== confirmPassword) {
+      toast({ title: "Erreur", description: "Les mots de passe ne correspondent pas.", variant: "destructive" });
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast({ title: "Erreur", description: "Le mot de passe doit contenir au moins 6 caractères.", variant: "destructive" });
+      return;
+    }
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Mot de passe modifié !" });
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    }
+  };
+
+  const roleLabel = profile?.role === "student" ? "Étudiant" : profile?.role === "teacher" ? "Enseignant" : "Administrateur";
+  const initials = profile?.name ? profile.name.split(" ").map(n => n[0]).join("").toUpperCase() : "?";
 
   return (
     <AppLayout>
@@ -41,20 +85,22 @@ export default function SettingsPage() {
             <div className="bg-card rounded-xl border border-border p-6 shadow-soft space-y-4">
               <div className="flex items-center gap-4 mb-6">
                 <div className="w-16 h-16 rounded-full gradient-primary flex items-center justify-center text-xl font-bold text-primary-foreground">
-                  {currentUser.name.split(" ").map(n => n[0]).join("")}
+                  {initials}
                 </div>
                 <div>
-                  <p className="font-semibold text-foreground">{currentUser.name}</p>
-                  <p className="text-sm text-muted-foreground">{currentUser.role === "student" ? "Étudiant" : currentUser.role === "teacher" ? "Enseignant" : "Admin"}</p>
+                  <p className="font-semibold text-foreground">{profile?.name}</p>
+                  <p className="text-sm text-muted-foreground">{roleLabel}</p>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2"><Label>Nom</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
-                <div className="space-y-2"><Label>Email</Label><Input value={email} onChange={(e) => setEmail(e.target.value)} /></div>
-                <div className="space-y-2"><Label>Institution</Label><Input value={currentUser.institution} readOnly /></div>
-                <div className="space-y-2"><Label>Filière</Label><Input value={currentUser.field} readOnly /></div>
+                <div className="space-y-2"><Label>Email</Label><Input value={profile?.email || ""} readOnly className="opacity-60" /></div>
+                <div className="space-y-2"><Label>Institution</Label><Input value={institution} onChange={(e) => setInstitution(e.target.value)} /></div>
+                <div className="space-y-2"><Label>Filière</Label><Input value={field} onChange={(e) => setField(e.target.value)} /></div>
               </div>
-              <Button onClick={handleSave}>Sauvegarder</Button>
+              <Button onClick={handleSaveProfile} disabled={saving}>
+                {saving ? "Sauvegarde..." : "Sauvegarder"}
+              </Button>
             </div>
           </TabsContent>
 
@@ -84,10 +130,9 @@ export default function SettingsPage() {
 
           <TabsContent value="security" className="mt-6">
             <div className="bg-card rounded-xl border border-border p-6 shadow-soft space-y-4">
-              <div className="space-y-2"><Label>Mot de passe actuel</Label><Input type="password" placeholder="••••••••" /></div>
-              <div className="space-y-2"><Label>Nouveau mot de passe</Label><Input type="password" placeholder="••••••••" /></div>
-              <div className="space-y-2"><Label>Confirmer</Label><Input type="password" placeholder="••••••••" /></div>
-              <Button onClick={handleSave}>Changer le mot de passe</Button>
+              <div className="space-y-2"><Label>Nouveau mot de passe</Label><Input type="password" placeholder="••••••••" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} /></div>
+              <div className="space-y-2"><Label>Confirmer</Label><Input type="password" placeholder="••••••••" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} /></div>
+              <Button onClick={handleChangePassword}>Changer le mot de passe</Button>
             </div>
           </TabsContent>
         </Tabs>
