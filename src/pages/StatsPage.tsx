@@ -1,16 +1,19 @@
 import { useState, useEffect } from "react";
-import { BarChart3, TrendingUp, Target, Clock, Award, Zap } from "lucide-react";
+import { BarChart3, TrendingUp, Target, Clock, Award, Zap, Download } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
 import StatCard from "@/components/shared/StatCard";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useGamification } from "@/hooks/use-gamification";
+import { exportQuizResultsPdf, exportTeacherStatsPdf } from "@/lib/pdf-export";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { toast } from "sonner";
 
 const COLORS = ["hsl(221, 83%, 53%)", "hsl(142, 71%, 45%)", "hsl(38, 92%, 50%)", "hsl(199, 89%, 48%)", "hsl(0, 84%, 60%)", "hsl(270, 70%, 55%)"];
 
 export default function StatsPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { xp, level } = useGamification();
   const [quizAttempts, setQuizAttempts] = useState<any[]>([]);
   const [completedCourses, setCompletedCourses] = useState(0);
@@ -18,6 +21,10 @@ export default function StatsPage() {
   const [moduleScores, setModuleScores] = useState<{ subject: string; score: number }[]>([]);
   const [weeklyData, setWeeklyData] = useState<{ week: string; score: number }[]>([]);
   const [loading, setLoading] = useState(true);
+  // Teacher-specific state
+  const [teacherAttempts, setTeacherAttempts] = useState<any[]>([]);
+
+  const isTeacher = profile?.role === "teacher" || profile?.role === "admin";
 
   useEffect(() => {
     const fetch = async () => {
@@ -72,10 +79,63 @@ export default function StatsPage() {
         setWeeklyData(weekly);
       }
 
+      // Teacher: fetch all attempts for their quizzes
+      if (isTeacher) {
+        const { data: myModules } = await supabase
+          .from("modules")
+          .select("id")
+          .eq("teacher_id", user.id);
+
+        if (myModules?.length) {
+          const moduleIds = myModules.map(m => m.id);
+          const { data: myQuizzes } = await supabase
+            .from("quizzes")
+            .select("id, title, module_id")
+            .in("module_id", moduleIds);
+
+          if (myQuizzes?.length) {
+            const quizIds = myQuizzes.map(q => q.id);
+            const { data: allAttempts } = await supabase
+              .from("quiz_attempts")
+              .select("*")
+              .in("quiz_id", quizIds)
+              .order("completed_at", { ascending: false });
+
+            if (allAttempts?.length) {
+              // Get student profiles
+              const studentIds = [...new Set(allAttempts.map(a => a.user_id))];
+              const { data: students } = await supabase
+                .from("profiles")
+                .select("id, name")
+                .in("id", studentIds);
+
+              const studentMap = new Map(students?.map(s => [s.id, s.name]) || []);
+              const quizMap = new Map(myQuizzes.map(q => [q.id, { title: q.title, module_id: q.module_id }]));
+
+              // Get module titles
+              const { data: mods } = await supabase
+                .from("modules")
+                .select("id, title")
+                .in("id", moduleIds);
+              const modMap = new Map(mods?.map(m => [m.id, m.title]) || []);
+
+              setTeacherAttempts(
+                allAttempts.map(a => ({
+                  ...a,
+                  studentName: studentMap.get(a.user_id) || "Inconnu",
+                  quizTitle: quizMap.get(a.quiz_id)?.title || "Inconnu",
+                  moduleTitle: modMap.get(quizMap.get(a.quiz_id)?.module_id || "") || "Inconnu",
+                }))
+              );
+            }
+          }
+        }
+      }
+
       setLoading(false);
     };
     fetch();
-  }, [user]);
+  }, [user, isTeacher]);
 
   const avgScore = quizAttempts.length > 0
     ? Math.round(quizAttempts.reduce((s, a) => s + (a.max_score > 0 ? (a.score / a.max_score) * 100 : 0), 0) / quizAttempts.length)
@@ -86,14 +146,77 @@ export default function StatsPage() {
     { name: "Restants", value: Math.max(0, totalCourses - completedCourses) },
   ];
 
+  const handleExportResults = () => {
+    if (teacherAttempts.length === 0) {
+      toast.error("Aucune donnée à exporter");
+      return;
+    }
+    exportQuizResultsPdf(
+      teacherAttempts.map(a => ({
+        studentName: a.studentName,
+        quizTitle: a.quizTitle,
+        score: a.score,
+        maxScore: a.max_score,
+        percentage: a.max_score > 0 ? Math.round((a.score / a.max_score) * 100) : 0,
+        completedAt: new Date(a.completed_at).toLocaleDateString("fr-FR"),
+      })),
+      profile?.name || "Enseignant"
+    );
+    toast.success("PDF des résultats exporté !");
+  };
+
+  const handleExportStats = () => {
+    if (teacherAttempts.length === 0) {
+      toast.error("Aucune donnée à exporter");
+      return;
+    }
+
+    // Build module stats from teacher attempts
+    const modMap: Record<string, { name: string; scores: number[] }> = {};
+    teacherAttempts.forEach((a: any) => {
+      const key = a.moduleTitle;
+      if (!modMap[key]) modMap[key] = { name: key, scores: [] };
+      const pct = a.max_score > 0 ? Math.round((a.score / a.max_score) * 100) : 0;
+      modMap[key].scores.push(pct);
+    });
+
+    const moduleStats = Object.values(modMap).map(m => ({
+      moduleName: m.name,
+      avgScore: Math.round(m.scores.reduce((s, v) => s + v, 0) / m.scores.length),
+      bestScore: Math.max(...m.scores),
+      worstScore: Math.min(...m.scores),
+      attempts: m.scores.length,
+    }));
+
+    const studentIds = new Set(teacherAttempts.map((a: any) => a.user_id));
+    const globalAvg = Math.round(
+      teacherAttempts.reduce((s: number, a: any) => s + (a.max_score > 0 ? (a.score / a.max_score) * 100 : 0), 0) / teacherAttempts.length
+    );
+
+    exportTeacherStatsPdf(moduleStats, studentIds.size, teacherAttempts.length, globalAvg, profile?.name || "Enseignant");
+    toast.success("PDF des statistiques exporté !");
+  };
+
   return (
     <AppLayout>
       <div className="space-y-6 animate-fade-in">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <BarChart3 className="w-6 h-6 text-primary" /> Statistiques
-          </h1>
-          <p className="text-muted-foreground">Suivez votre progression détaillée</p>
+        <div className="flex items-start justify-between flex-wrap gap-3">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+              <BarChart3 className="w-6 h-6 text-primary" /> Statistiques
+            </h1>
+            <p className="text-muted-foreground">Suivez votre progression détaillée</p>
+          </div>
+          {isTeacher && !loading && teacherAttempts.length > 0 && (
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={handleExportResults}>
+                <Download className="w-4 h-4 mr-1" /> Résultats PDF
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleExportStats}>
+                <Download className="w-4 h-4 mr-1" /> Stats PDF
+              </Button>
+            </div>
+          )}
         </div>
 
         {loading ? (
@@ -108,6 +231,27 @@ export default function StatsPage() {
               <StatCard title="Cours terminés" value={`${completedCourses}/${totalCourses}`} icon={<Award className="w-5 h-5" />} />
               <StatCard title="XP / Niveau" value={`${xp} XP · Niv.${level}`} icon={<Zap className="w-5 h-5" />} />
             </div>
+
+            {/* Teacher summary cards */}
+            {isTeacher && teacherAttempts.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <StatCard
+                  title="Étudiants actifs"
+                  value={new Set(teacherAttempts.map((a: any) => a.user_id)).size}
+                  icon={<Award className="w-5 h-5" />}
+                />
+                <StatCard
+                  title="Tentatives totales"
+                  value={teacherAttempts.length}
+                  icon={<TrendingUp className="w-5 h-5" />}
+                />
+                <StatCard
+                  title="Score moyen global"
+                  value={`${Math.round(teacherAttempts.reduce((s: number, a: any) => s + (a.max_score > 0 ? (a.score / a.max_score) * 100 : 0), 0) / teacherAttempts.length)}%`}
+                  icon={<Target className="w-5 h-5" />}
+                />
+              </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {weeklyData.length > 0 && (
