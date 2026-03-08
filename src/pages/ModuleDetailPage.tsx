@@ -22,6 +22,8 @@ interface ResourceData {
   id: string; title: string; type: string; url: string; course_id: string;
 }
 
+const hasHtmlTags = (value: string) => /<\/?[a-z][\s\S]*>/i.test(value);
+
 export default function ModuleDetailPage() {
   const { id } = useParams();
   const { user, profile } = useAuth();
@@ -93,6 +95,8 @@ export default function ModuleDetailPage() {
 
   const course = courses.find(c => c.id === selectedCourse);
   const courseResources = resources.filter(r => r.course_id === selectedCourse);
+  const courseContent = (course?.content || "").trim();
+  const isRichTextContent = courseContent ? hasHtmlTags(courseContent) : false;
 
   const handleMarkComplete = async () => {
     if (!user || !selectedCourse) return;
@@ -243,8 +247,16 @@ export default function ModuleDetailPage() {
                   {course.duration && <span><Clock className="w-4 h-4 inline mr-1" />{course.duration}</span>}
                   {completedCourses.has(course.id) && <span className="text-success flex items-center gap-1"><CheckCircle2 className="w-4 h-4" /> Terminé</span>}
                 </div>
-                <div className="prose prose-sm max-w-none text-foreground whitespace-pre-wrap">
-                  {course.content || "Contenu à venir..."}
+                <div className="prose prose-sm max-w-none text-foreground prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-li:text-foreground">
+                  {courseContent ? (
+                    isRichTextContent ? (
+                      <div dangerouslySetInnerHTML={{ __html: courseContent }} />
+                    ) : (
+                      <div className="whitespace-pre-wrap">{courseContent}</div>
+                    )
+                  ) : (
+                    <p>Contenu à venir...</p>
+                  )}
                 </div>
 
                 {(courseResources.length > 0 || (isTeacher && mod?.teacher_id === user?.id)) && (
@@ -295,3 +307,4 @@ export default function ModuleDetailPage() {
     </AppLayout>
   );
 }
+

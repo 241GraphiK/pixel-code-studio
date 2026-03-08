@@ -5,6 +5,7 @@ import AppLayout from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import RichTextEditor from "@/components/ui/rich-text-editor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/use-auth";
@@ -145,7 +146,14 @@ export default function CreateModulePage() {
                   )}
                 </div>
                 <Input value={course.title} onChange={e => updateCourse(i, "title", e.target.value)} placeholder="Titre du cours" maxLength={200} />
-                <Textarea value={course.content} onChange={e => updateCourse(i, "content", e.target.value)} placeholder="Contenu du cours..." rows={3} maxLength={5000} />
+                <div className="space-y-2">
+                  <Label>Contenu du cours</Label>
+                  <RichTextEditor
+                    value={course.content}
+                    onChange={(value) => updateCourse(i, "content", value)}
+                    placeholder="Rédigez le contenu du cours..."
+                  />
+                </div>
                 <Input value={course.duration} onChange={e => updateCourse(i, "duration", e.target.value)} placeholder="Durée (ex: 45 min)" maxLength={50} />
               </div>
             ))}
@@ -162,3 +170,4 @@ export default function CreateModulePage() {
     </AppLayout>
   );
 }
+
