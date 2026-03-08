@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { BookOpen, FileQuestion, Trophy, Clock, TrendingUp, Users, Star, Zap } from "lucide-react";
+import { BookOpen, FileQuestion, Trophy, Clock, TrendingUp, Users, Star, Zap, Crown, Medal } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import AppLayout from "@/components/layout/AppLayout";
 import StatCard from "@/components/shared/StatCard";
 import { useAuth } from "@/hooks/use-auth";
