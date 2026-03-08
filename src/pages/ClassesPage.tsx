@@ -14,6 +14,7 @@ export default function ClassesPage() {
   const [joinCode, setJoinCode] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const { toast } = useToast();
+  const { profile } = useAuth();
 
   const filtered = classes.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()));
 
