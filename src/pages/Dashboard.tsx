@@ -28,6 +28,9 @@ export default function Dashboard() {
           <p className="text-muted-foreground">Voici un résumé de votre progression</p>
         </div>
 
+        {/* Gamification XP Bar */}
+        <XpBar xp={xp} level={level} xpProgress={xpProgress} xpInCurrentLevel={xpInCurrentLevel} />
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard title="Modules complétés" value={`${myProgress?.completedModules || 0}/${myProgress?.totalModules || 0}`} icon={<BookOpen className="w-5 h-5" />} trend={{ value: 12, positive: true }} />
           <StatCard title="QCM passés" value={myProgress?.quizzesPassed || 0} icon={<FileQuestion className="w-5 h-5" />} trend={{ value: 8, positive: true }} />
