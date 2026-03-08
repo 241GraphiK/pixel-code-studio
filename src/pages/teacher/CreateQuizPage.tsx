@@ -30,6 +30,12 @@ export default function CreateQuizPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [saving, setSaving] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [aiDialogOpen, setAiDialogOpen] = useState(false);
+  const [aiCourseId, setAiCourseId] = useState("");
+  const [aiNumQuestions, setAiNumQuestions] = useState(5);
+  const [aiDifficulty, setAiDifficulty] = useState("medium");
+  const [coursesForModule, setCoursesForModule] = useState<{ id: string; title: string; content: string | null }[]>([]);
 
   const [modules, setModules] = useState<{ id: string; title: string }[]>([]);
   const [moduleId, setModuleId] = useState("");
