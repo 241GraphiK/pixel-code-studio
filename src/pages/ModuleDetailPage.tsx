@@ -113,8 +113,28 @@ export default function ModuleDetailPage() {
   const resourceIcon = (type: string) => {
     if (type === "pdf") return <FileText className="w-4 h-4" />;
     if (type === "video") return <Video className="w-4 h-4" />;
+    if (type === "image") return <Image className="w-4 h-4" />;
     if (type === "link") return <Link2 className="w-4 h-4" />;
     return <Dumbbell className="w-4 h-4" />;
+  };
+
+  const refetchResources = async () => {
+    if (!id) return;
+    const courseIds = courses.map(c => c.id);
+    if (courseIds.length > 0) {
+      const { data: res } = await supabase.from("resources").select("*").in("course_id", courseIds);
+      if (res) setResources(res);
+    }
+  };
+
+  const handleDeleteResource = async (resourceId: string) => {
+    const { error } = await supabase.from("resources").delete().eq("id", resourceId);
+    if (error) {
+      toast.error("Erreur lors de la suppression");
+    } else {
+      setResources(prev => prev.filter(r => r.id !== resourceId));
+      toast.success("Ressource supprimée");
+    }
   };
 
   const completedCount = courses.filter(c => completedCourses.has(c.id)).length;
