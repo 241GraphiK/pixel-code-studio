@@ -24,7 +24,8 @@ interface ResourceData {
 
 export default function ModuleDetailPage() {
   const { id } = useParams();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const isTeacher = profile?.role === "teacher" || profile?.role === "admin";
   const [mod, setMod] = useState<ModuleData | null>(null);
   const [courses, setCourses] = useState<CourseData[]>([]);
   const [quizzes, setQuizzes] = useState<QuizData[]>([]);
