@@ -52,6 +52,7 @@ const App = () => (
               <Route path="/teacher/modules/create" element={<ProtectedRoute><CreateModulePage /></ProtectedRoute>} />
               <Route path="/teacher/quizzes/create" element={<ProtectedRoute><CreateQuizPage /></ProtectedRoute>} />
               <Route path="/achievements" element={<ProtectedRoute><AchievementsPage /></ProtectedRoute>} />
+              <Route path="/leaderboard" element={<ProtectedRoute><LeaderboardPage /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
