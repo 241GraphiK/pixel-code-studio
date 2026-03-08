@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      badges: {
+        Row: {
+          category: string
+          condition_type: string
+          condition_value: number
+          created_at: string
+          description: string
+          icon: string
+          id: string
+          name: string
+          xp_reward: number
+        }
+        Insert: {
+          category?: string
+          condition_type?: string
+          condition_value?: number
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          name: string
+          xp_reward?: number
+        }
+        Update: {
+          category?: string
+          condition_type?: string
+          condition_value?: number
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          name?: string
+          xp_reward?: number
+        }
+        Relationships: []
+      }
       class_members: {
         Row: {
           class_id: string
@@ -212,36 +248,42 @@ export type Database = {
           created_at: string
           email: string
           field: string | null
+          gamification_level: number
           id: string
           institution: string | null
           level: string | null
           name: string
           role: Database["public"]["Enums"]["app_role"]
           updated_at: string
+          xp: number
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
           email?: string
           field?: string | null
+          gamification_level?: number
           id: string
           institution?: string | null
           level?: string | null
           name?: string
           role?: Database["public"]["Enums"]["app_role"]
           updated_at?: string
+          xp?: number
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
           email?: string
           field?: string | null
+          gamification_level?: number
           id?: string
           institution?: string | null
           level?: string | null
           name?: string
           role?: Database["public"]["Enums"]["app_role"]
           updated_at?: string
+          xp?: number
         }
         Relationships: []
       }
@@ -394,6 +436,35 @@ export type Database = {
           },
         ]
       }
+      user_badges: {
+        Row: {
+          badge_id: string
+          earned_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          badge_id: string
+          earned_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          badge_id?: string
+          earned_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -412,11 +483,40 @@ export type Database = {
         }
         Relationships: []
       }
+      xp_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          reason?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          reason?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      award_xp: {
+        Args: { _amount: number; _reason: string; _user_id: string }
+        Returns: undefined
+      }
+      check_and_award_badges: { Args: { _user_id: string }; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

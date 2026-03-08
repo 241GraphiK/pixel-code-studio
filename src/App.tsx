@@ -22,6 +22,7 @@ import NotFound from "./pages/NotFound";
 import TeacherModulesPage from "./pages/teacher/TeacherModulesPage";
 import CreateModulePage from "./pages/teacher/CreateModulePage";
 import CreateQuizPage from "./pages/teacher/CreateQuizPage";
+import AchievementsPage from "./pages/AchievementsPage";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,7 @@ const App = () => (
               <Route path="/teacher/modules" element={<ProtectedRoute><TeacherModulesPage /></ProtectedRoute>} />
               <Route path="/teacher/modules/create" element={<ProtectedRoute><CreateModulePage /></ProtectedRoute>} />
               <Route path="/teacher/quizzes/create" element={<ProtectedRoute><CreateQuizPage /></ProtectedRoute>} />
+              <Route path="/achievements" element={<ProtectedRoute><AchievementsPage /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

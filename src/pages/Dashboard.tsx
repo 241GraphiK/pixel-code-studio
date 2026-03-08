@@ -1,8 +1,11 @@
-import { BookOpen, FileQuestion, Trophy, Clock, TrendingUp, Users } from "lucide-react";
+import { BookOpen, FileQuestion, Trophy, Clock, TrendingUp, Users, Star } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
 import StatCard from "@/components/shared/StatCard";
 import { modules, quizzes, studentProgress, weeklyScores } from "@/lib/mock-data";
 import { useAuth } from "@/hooks/use-auth";
+import { useGamification } from "@/hooks/use-gamification";
+import XpBar from "@/components/gamification/XpBar";
+import BadgeCard from "@/components/gamification/BadgeCard";
 import { Link } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
@@ -10,6 +13,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 export default function Dashboard() {
   const { profile } = useAuth();
   const firstName = profile?.name?.split(" ")[0] || "Utilisateur";
+  const { xp, level, xpProgress, xpInCurrentLevel, badges, userBadges, earnedBadgeIds } = useGamification();
 
   // For now use mock progress data — will be replaced with real data later
   const myProgress = studentProgress[0];
@@ -23,6 +27,9 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold text-foreground">Bonjour, {firstName} 👋</h1>
           <p className="text-muted-foreground">Voici un résumé de votre progression</p>
         </div>
+
+        {/* Gamification XP Bar */}
+        <XpBar xp={xp} level={level} xpProgress={xpProgress} xpInCurrentLevel={xpInCurrentLevel} />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard title="Modules complétés" value={`${myProgress?.completedModules || 0}/${myProgress?.totalModules || 0}`} icon={<BookOpen className="w-5 h-5" />} trend={{ value: 12, positive: true }} />
@@ -122,6 +129,28 @@ export default function Dashboard() {
             ))}
           </div>
         </div>
+
+        {/* Recent Badges */}
+        {badges.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-warning" /> Badges
+              </h2>
+              <Link to="/achievements" className="text-sm text-primary hover:underline">Voir tout →</Link>
+            </div>
+            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+              {badges.slice(0, 6).map(badge => (
+                <BadgeCard
+                  key={badge.id}
+                  badge={badge}
+                  earned={earnedBadgeIds.has(badge.id)}
+                  compact
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </AppLayout>
   );
