@@ -1,26 +1,29 @@
 import { BookOpen, FileQuestion, Trophy, Clock, TrendingUp, Users } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
 import StatCard from "@/components/shared/StatCard";
-import { modules, quizzes, studentProgress, weeklyScores, currentUser } from "@/lib/mock-data";
+import { modules, quizzes, studentProgress, weeklyScores } from "@/lib/mock-data";
+import { useAuth } from "@/hooks/use-auth";
 import { Link } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 export default function Dashboard() {
-  const myProgress = studentProgress.find((s) => s.studentId === currentUser.id);
+  const { profile } = useAuth();
+  const firstName = profile?.name?.split(" ")[0] || "Utilisateur";
+
+  // For now use mock progress data — will be replaced with real data later
+  const myProgress = studentProgress[0];
   const recentModules = modules.slice(0, 3);
   const recentQuizzes = quizzes.slice(0, 3);
 
   return (
     <AppLayout>
       <div className="space-y-6 animate-fade-in">
-        {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Bonjour, {currentUser.name.split(" ")[0]} 👋</h1>
+          <h1 className="text-2xl font-bold text-foreground">Bonjour, {firstName} 👋</h1>
           <p className="text-muted-foreground">Voici un résumé de votre progression</p>
         </div>
 
-        {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard title="Modules complétés" value={`${myProgress?.completedModules || 0}/${myProgress?.totalModules || 0}`} icon={<BookOpen className="w-5 h-5" />} trend={{ value: 12, positive: true }} />
           <StatCard title="QCM passés" value={myProgress?.quizzesPassed || 0} icon={<FileQuestion className="w-5 h-5" />} trend={{ value: 8, positive: true }} />
@@ -29,7 +32,6 @@ export default function Dashboard() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Chart */}
           <div className="lg:col-span-2 bg-card rounded-xl border border-border p-5 shadow-soft">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-semibold text-foreground flex items-center gap-2">
@@ -49,14 +51,13 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Ranking */}
           <div className="bg-card rounded-xl border border-border p-5 shadow-soft">
             <h2 className="font-semibold text-foreground flex items-center gap-2 mb-4">
               <Users className="w-4 h-4 text-primary" /> Classement
             </h2>
             <div className="space-y-3">
               {studentProgress.slice(0, 5).map((s) => (
-                <div key={s.studentId} className={`flex items-center gap-3 p-2 rounded-lg ${s.studentId === currentUser.id ? "bg-primary/10" : ""}`}>
+                <div key={s.studentId} className="flex items-center gap-3 p-2 rounded-lg">
                   <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${s.rank <= 3 ? "bg-warning text-warning-foreground" : "bg-muted text-muted-foreground"}`}>
                     {s.rank}
                   </span>
@@ -70,7 +71,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Recent modules */}
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-foreground">Modules en cours</h2>
@@ -97,7 +97,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Recent quizzes */}
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-foreground">QCM récents</h2>
