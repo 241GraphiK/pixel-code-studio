@@ -96,20 +96,31 @@ export default function Dashboard() {
           {/* Leaderboard */}
           <div className="bg-card rounded-xl border border-border p-5 shadow-soft lg:col-span-1">
             <h2 className="font-semibold text-foreground flex items-center gap-2 mb-4">
-              <Users className="w-4 h-4 text-primary" /> Classement XP
+              <Crown className="w-4 h-4 text-warning" /> Classement XP
             </h2>
-            <div className="space-y-3">
-              {leaderboard.map((s, i) => (
-                <div key={i} className="flex items-center gap-3 p-2 rounded-lg">
-                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${i < 3 ? "bg-warning text-warning-foreground" : "bg-muted text-muted-foreground"}`}>
-                    {i + 1}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{s.name}</p>
-                    <p className="text-xs text-muted-foreground flex items-center gap-1"><Zap className="w-3 h-3" /> {s.xp} XP</p>
+            <div className="space-y-2">
+              {leaderboard.map((s, i) => {
+                const isCurrentUser = s.name === firstName;
+                const medalColors = ["text-yellow-500", "text-gray-400", "text-amber-600"];
+                return (
+                  <div key={i} className={`flex items-center gap-3 p-2.5 rounded-lg transition-colors ${isCurrentUser ? "bg-primary/10 border border-primary/20" : "hover:bg-muted/50"}`}>
+                    <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${i < 3 ? "bg-warning/15 text-warning" : "bg-muted text-muted-foreground"}`}>
+                      {i < 3 ? <Medal className={`w-4 h-4 ${medalColors[i]}`} /> : i + 1}
+                    </span>
+                    <Avatar className="w-8 h-8">
+                      <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">
+                        {s.name?.charAt(0)?.toUpperCase() || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{s.name} {isCurrentUser && <span className="text-xs text-primary">(vous)</span>}</p>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Zap className="w-3 h-3 text-warning" /> {s.xp} XP · Niv. {s.gamification_level}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
               {leaderboard.length === 0 && (
                 <p className="text-sm text-muted-foreground text-center py-4">Aucun classement pour le moment</p>
               )}
