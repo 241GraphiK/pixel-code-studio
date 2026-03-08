@@ -22,6 +22,7 @@ import NotFound from "./pages/NotFound";
 import TeacherModulesPage from "./pages/teacher/TeacherModulesPage";
 import CreateModulePage from "./pages/teacher/CreateModulePage";
 import CreateQuizPage from "./pages/teacher/CreateQuizPage";
+import AchievementsPage from "./pages/AchievementsPage";
 
 const queryClient = new QueryClient();
 
