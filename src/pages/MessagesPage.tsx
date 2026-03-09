@@ -22,7 +22,7 @@ import { MessageReactions, useReactions } from "@/components/messages/MessageRea
 import { useTypingIndicator } from "@/hooks/use-typing";
 
 export default function MessagesPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { conversations, loading: convsLoading, refetch } = useConversations();
   const [selectedConvId, setSelectedConvId] = useState<string | null>(null);
   const { messages, loading: msgsLoading, sendMessage, deleteMessage } = useMessages(selectedConvId);
@@ -32,6 +32,7 @@ export default function MessagesPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { isOnline } = usePresence();
   const { fetchReactions, toggleReaction, getReactions } = useReactions(selectedConvId);
+  const { typingNames, sendTyping, sendStopTyping } = useTypingIndicator(selectedConvId, user?.id);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
