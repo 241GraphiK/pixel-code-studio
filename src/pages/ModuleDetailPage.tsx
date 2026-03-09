@@ -38,6 +38,7 @@ export default function ModuleDetailPage() {
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
   const [teacherName, setTeacherName] = useState("");
   const [loading, setLoading] = useState(true);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetch = async () => {
