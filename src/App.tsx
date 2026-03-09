@@ -26,6 +26,7 @@ import AchievementsPage from "./pages/AchievementsPage";
 import LeaderboardPage from "./pages/LeaderboardPage";
 import MessagesPage from "./pages/MessagesPage";
 import TeacherStatsPage from "./pages/teacher/TeacherStatsPage";
+import EditModulePage from "./pages/teacher/EditModulePage";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +53,7 @@ const App = () => (
               <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
               <Route path="/teacher/modules" element={<ProtectedRoute><TeacherModulesPage /></ProtectedRoute>} />
               <Route path="/teacher/modules/create" element={<ProtectedRoute><CreateModulePage /></ProtectedRoute>} />
+              <Route path="/teacher/modules/:id/edit" element={<ProtectedRoute><EditModulePage /></ProtectedRoute>} />
               <Route path="/teacher/quizzes/create" element={<ProtectedRoute><CreateQuizPage /></ProtectedRoute>} />
               <Route path="/teacher/stats" element={<ProtectedRoute><TeacherStatsPage /></ProtectedRoute>} />
               <Route path="/achievements" element={<ProtectedRoute><AchievementsPage /></ProtectedRoute>} />

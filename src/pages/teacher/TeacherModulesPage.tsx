@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { BookOpen, Plus, FileQuestion, Pencil, Trash2 } from "lucide-react";
+import { BookOpen, Plus, FileQuestion, Pencil, Trash2, Settings2 } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
@@ -88,6 +88,9 @@ export default function TeacherModulesPage() {
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" asChild>
                     <Link to={`/modules/${m.id}`}><Pencil className="w-3.5 h-3.5 mr-1" /> Voir</Link>
+                  </Button>
+                  <Button variant="secondary" size="sm" asChild>
+                    <Link to={`/teacher/modules/${m.id}/edit`}><Settings2 className="w-3.5 h-3.5 mr-1" /> Modifier</Link>
                   </Button>
                   <Button variant="ghost" size="sm" onClick={() => handleDelete(m.id)} className="text-destructive hover:text-destructive">
                     <Trash2 className="w-3.5 h-3.5" />
