@@ -68,7 +68,7 @@ export default function ClassDetailPage() {
   const [newGroupName, setNewGroupName] = useState("");
   const [addGroupMemberOpen, setAddGroupMemberOpen] = useState<string | null>(null);
 
-  const isTeacher = classInfo?.teacher_id === user?.id;
+  const isTeacher = classInfo?.teacher_id === user?.id || profile?.role === "admin";
 
   // ─── Fetch class info ───
   useEffect(() => {
