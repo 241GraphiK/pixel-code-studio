@@ -50,6 +50,47 @@ export type Database = {
         }
         Relationships: []
       }
+      call_logs: {
+        Row: {
+          caller_id: string
+          conversation_id: string
+          created_at: string
+          duration: number
+          id: string
+          mode: string
+          receiver_id: string
+          status: string
+        }
+        Insert: {
+          caller_id: string
+          conversation_id: string
+          created_at?: string
+          duration?: number
+          id?: string
+          mode?: string
+          receiver_id: string
+          status?: string
+        }
+        Update: {
+          caller_id?: string
+          conversation_id?: string
+          created_at?: string
+          duration?: number
+          id?: string
+          mode?: string
+          receiver_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_logs_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       class_events: {
         Row: {
           class_id: string

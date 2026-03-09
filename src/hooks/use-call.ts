@@ -34,6 +34,8 @@ export function useCall(userId: string | undefined, userName: string | undefined
     duration: 0,
   });
 
+  const callStartTime = useRef<number | null>(null);
+
   const peerConnection = useRef<RTCPeerConnection | null>(null);
   const localStream = useRef<MediaStream | null>(null);
   const remoteAudio = useRef<HTMLAudioElement | null>(null);
@@ -118,7 +120,8 @@ export function useCall(userId: string | undefined, userName: string | undefined
           await peerConnection.current.setRemoteDescription(
             new RTCSessionDescription(payload.answer)
           );
-          setState((prev) => ({ ...prev, status: "connected" }));
+      setState((prev) => ({ ...prev, status: "connected" }));
+          callStartTime.current = Date.now();
           startDurationTimer();
         })
         .on("broadcast", { event: "ice-candidate" }, async ({ payload }) => {
@@ -334,6 +337,7 @@ export function useCall(userId: string | undefined, userName: string | undefined
 
       incomingOfferRef.current = null;
       setState((prev) => ({ ...prev, status: "connected" }));
+      callStartTime.current = Date.now();
       startDurationTimer();
     } catch (e) {
       console.error("Failed to accept call:", e);
@@ -342,12 +346,34 @@ export function useCall(userId: string | undefined, userName: string | undefined
     }
   }, [state.conversationId, userId, createPeerConnection, getSignalingChannel, cleanup]);
 
+  const logCall = useCallback(async (
+    conversationId: string,
+    remoteUserId: string,
+    mode: CallMode,
+    callStatus: "completed" | "missed" | "rejected",
+    duration: number
+  ) => {
+    if (!userId) return;
+    try {
+      await supabase.from("call_logs" as any).insert({
+        conversation_id: conversationId,
+        caller_id: userId,
+        receiver_id: remoteUserId,
+        mode,
+        status: callStatus,
+        duration,
+      });
+    } catch (e) {
+      console.error("Failed to log call:", e);
+    }
+  }, [userId]);
+
   const rejectCall = useCallback(() => {
     if (state.remoteUserId) {
       const rejectChannel = supabase.channel(`calls-user-${state.remoteUserId}`);
       rejectChannel
-        .subscribe((status) => {
-          if (status === "SUBSCRIBED") {
+        .subscribe((st) => {
+          if (st === "SUBSCRIBED") {
             rejectChannel.send({
               type: "broadcast",
               event: "call-rejected",
@@ -356,6 +382,11 @@ export function useCall(userId: string | undefined, userName: string | undefined
             setTimeout(() => supabase.removeChannel(rejectChannel), 1000);
           }
         });
+
+      // Log rejected call
+      if (state.conversationId && state.remoteUserId) {
+        logCall(state.conversationId, state.remoteUserId, state.mode, "rejected", 0);
+      }
     }
     incomingOfferRef.current = null;
     cleanup();
@@ -369,16 +400,29 @@ export function useCall(userId: string | undefined, userName: string | undefined
       mode: "audio",
       duration: 0,
     });
-  }, [state.remoteUserId, cleanup]);
+  }, [state.remoteUserId, state.conversationId, state.mode, cleanup, logCall]);
 
   const endCall = useCallback(() => {
-    if (state.conversationId && channelRef.current) {
+    const convId = state.conversationId;
+    const remoteId = state.remoteUserId;
+    const mode = state.mode;
+    const wasConnected = callStartTime.current !== null;
+    const dur = wasConnected ? Math.floor((Date.now() - callStartTime.current!) / 1000) : 0;
+
+    if (convId && channelRef.current) {
       channelRef.current.send({
         type: "broadcast",
         event: "call-end",
         payload: { senderId: userId },
       });
     }
+
+    // Log the call
+    if (convId && remoteId) {
+      logCall(convId, remoteId, mode, wasConnected ? "completed" : "missed", dur);
+    }
+
+    callStartTime.current = null;
     cleanup();
     setState({
       status: "ended",
@@ -394,7 +438,7 @@ export function useCall(userId: string | undefined, userName: string | undefined
       () => setState((p) => (p.status === "ended" ? { ...p, status: "idle" } : p)),
       2000
     );
-  }, [state.conversationId, userId, cleanup]);
+  }, [state.conversationId, state.remoteUserId, state.mode, userId, cleanup, logCall]);
 
   const toggleMute = useCallback(() => {
     if (localStream.current) {

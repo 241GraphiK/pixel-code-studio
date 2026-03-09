@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import AppLayout from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/use-auth";
 import { useConversations, useMessages, createConversation, type Conversation, type Message } from "@/hooks/use-messages";
 import { usePresence } from "@/hooks/use-presence";
+import { useCallLogs } from "@/hooks/use-call-logs";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,12 +23,14 @@ import { MessageReactions, useReactions } from "@/components/messages/MessageRea
 import { useTypingIndicator } from "@/hooks/use-typing";
 import { useCall } from "@/hooks/use-call";
 import { IncomingCallDialog, ActiveCallBar, VideoCallOverlay } from "@/components/messages/CallUI";
+import { CallLogEntry } from "@/components/messages/CallLogEntry";
 
 export default function MessagesPage() {
   const { user, profile } = useAuth();
   const { conversations, loading: convsLoading, refetch } = useConversations();
   const [selectedConvId, setSelectedConvId] = useState<string | null>(null);
   const { messages, loading: msgsLoading, sendMessage, deleteMessage } = useMessages(selectedConvId);
+  const { callLogs } = useCallLogs(selectedConvId);
   const [searchQuery, setSearchQuery] = useState("");
   const [showMobileChat, setShowMobileChat] = useState(false);
   const [replyTo, setReplyTo] = useState<Message | null>(null);
@@ -36,6 +39,15 @@ export default function MessagesPage() {
   const { fetchReactions, toggleReaction, getReactions } = useReactions(selectedConvId);
   const { typingNames, sendTyping, sendStopTyping } = useTypingIndicator(selectedConvId, user?.id);
   const { callState, startCall, acceptCall, rejectCall, endCall, toggleMute, toggleVideo, setVideoRefs, formatDuration } = useCall(user?.id, profile?.name);
+
+  // Merge messages and call logs into a single timeline
+  const timeline = useMemo(() => {
+    const items: Array<{ type: "message"; data: Message } | { type: "call"; data: typeof callLogs[0] }> = [];
+    messages.forEach(m => items.push({ type: "message", data: m }));
+    callLogs.forEach(c => items.push({ type: "call", data: c }));
+    items.sort((a, b) => new Date(a.data.created_at).getTime() - new Date(b.data.created_at).getTime());
+    return items;
+  }, [messages, callLogs]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -256,7 +268,17 @@ export default function MessagesPage() {
                 {/* Messages */}
                 <ScrollArea className="flex-1 p-4">
                   <div className="space-y-3">
-                    {messages.map(msg => {
+                    {timeline.map(item => {
+                      if (item.type === "call") {
+                        return (
+                          <CallLogEntry
+                            key={`call-${item.data.id}`}
+                            log={item.data}
+                            currentUserId={user?.id || ""}
+                          />
+                        );
+                      }
+                      const msg = item.data as Message;
                       const isMe = msg.sender_id === user?.id;
                       return (
                         <div key={msg.id} className={cn("flex group items-end gap-1", isMe ? "justify-end" : "justify-start")}>
