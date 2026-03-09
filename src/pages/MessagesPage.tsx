@@ -35,6 +35,12 @@ export default function MessagesPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  useEffect(() => {
+    if (messages.length > 0) {
+      fetchReactions(messages.map(m => m.id));
+    }
+  }, [messages.length, selectedConvId]);
+
   const handleSelectConv = (convId: string) => {
     setSelectedConvId(convId);
     setShowMobileChat(true);
