@@ -3,16 +3,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import {
   Users, BookOpen, Calendar, MessageCircle, UsersRound,
   Plus, Trash2, ArrowLeft, Send, Video, FileText, ClipboardList,
-  Search, X, ExternalLink
+  Search, X, ExternalLink, MapPin, Clock
 } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
@@ -20,13 +17,15 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import EventFormDialog, { EventFormData } from "@/components/calendar/EventFormDialog";
+import { cn } from "@/lib/utils";
 
 // ─── Types ───
 interface ClassInfo { id: string; name: string; code: string; teacher_id: string; }
 interface Member { id: string; user_id: string; name: string; email: string; joined_at: string; }
 interface Module { id: string; title: string; field: string; level: string; }
 interface ClassModule { id: string; module_id: string; title: string; field: string; level: string; }
-interface Event { id: string; title: string; description: string | null; type: string; event_date: string | null; link_url: string | null; quiz_id: string | null; }
+interface Event { id: string; title: string; description: string | null; type: string; event_date: string | null; end_date: string | null; link_url: string | null; quiz_id: string | null; color: string | null; location: string | null; is_all_day: boolean | null; reminder_minutes: number | null; }
 interface ChatMsg { id: string; content: string; sender_id: string; sender_name: string; created_at: string; group_id: string | null; }
 interface Group { id: string; name: string; member_count: number; }
 
@@ -52,9 +51,8 @@ export default function ClassDetailPage() {
 
   // Events
   const [events, setEvents] = useState<Event[]>([]);
-  const [eventOpen, setEventOpen] = useState(false);
+  const [eventDialogOpen, setEventDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
-  const [eventForm, setEventForm] = useState({ title: "", description: "", type: "other", event_date: "", link_url: "", quiz_id: "" });
 
   // Chat
   const [messages, setMessages] = useState<ChatMsg[]>([]);
@@ -209,16 +207,20 @@ export default function ClassDetailPage() {
     if (error) toast.error(error.message); else { toast.success("Module retiré"); fetchClassModules(); }
   };
 
-  const saveEvent = async () => {
-    if (!id || !eventForm.title.trim()) return;
+  const saveEvent = async (data: EventFormData) => {
+    if (!id) return;
     const payload = {
       class_id: id,
-      title: eventForm.title,
-      description: eventForm.description || null,
-      type: eventForm.type,
-      event_date: eventForm.event_date || null,
-      link_url: eventForm.link_url || null,
-      quiz_id: eventForm.quiz_id || null,
+      title: data.title,
+      description: data.description || null,
+      type: data.type,
+      event_date: data.event_date || null,
+      end_date: data.end_date || null,
+      link_url: data.link_url || null,
+      location: data.location || null,
+      color: data.color || "primary",
+      is_all_day: data.is_all_day,
+      reminder_minutes: data.reminder_minutes,
     };
     if (editingEvent) {
       const { error } = await supabase.from("class_events").update(payload).eq("id", editingEvent.id);
@@ -227,9 +229,7 @@ export default function ClassDetailPage() {
       const { error } = await supabase.from("class_events").insert(payload);
       if (error) toast.error(error.message); else toast.success("Événement créé");
     }
-    setEventOpen(false);
     setEditingEvent(null);
-    setEventForm({ title: "", description: "", type: "other", event_date: "", link_url: "", quiz_id: "" });
     fetchEvents();
   };
 
@@ -241,15 +241,7 @@ export default function ClassDetailPage() {
 
   const openEditEvent = (e: Event) => {
     setEditingEvent(e);
-    setEventForm({
-      title: e.title,
-      description: e.description || "",
-      type: e.type,
-      event_date: e.event_date ? e.event_date.slice(0, 16) : "",
-      link_url: e.link_url || "",
-      quiz_id: e.quiz_id || "",
-    });
-    setEventOpen(true);
+    setEventDialogOpen(true);
   };
 
   const sendMessage = async () => {
@@ -419,49 +411,61 @@ export default function ClassDetailPage() {
           {/* ─── Events Tab ─── */}
           <TabsContent value="events" className="space-y-4 mt-4">
             {isTeacher && (
-              <Dialog open={eventOpen} onOpenChange={(o) => { setEventOpen(o); if (!o) { setEditingEvent(null); setEventForm({ title: "", description: "", type: "other", event_date: "", link_url: "", quiz_id: "" }); } }}>
-                <DialogTrigger asChild><Button size="sm"><Plus className="w-4 h-4 mr-1" />Créer un événement</Button></DialogTrigger>
-                <DialogContent>
-                  <DialogHeader><DialogTitle>{editingEvent ? "Modifier l'événement" : "Nouvel événement"}</DialogTitle></DialogHeader>
-                  <div className="space-y-3">
-                    <div><Label>Titre *</Label><Input value={eventForm.title} onChange={e => setEventForm(f => ({ ...f, title: e.target.value }))} /></div>
-                    <div><Label>Type</Label>
-                      <Select value={eventForm.type} onValueChange={v => setEventForm(f => ({ ...f, type: v }))}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="qcm">QCM</SelectItem>
-                          <SelectItem value="evaluation">Évaluation</SelectItem>
-                          <SelectItem value="visio">Visioconférence</SelectItem>
-                          <SelectItem value="other">Autre</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div><Label>Date & heure</Label><Input type="datetime-local" value={eventForm.event_date} onChange={e => setEventForm(f => ({ ...f, event_date: e.target.value }))} /></div>
-                    <div><Label>Description</Label><Textarea rows={2} value={eventForm.description} onChange={e => setEventForm(f => ({ ...f, description: e.target.value }))} /></div>
-                    {eventForm.type === "visio" && (
-                      <div><Label>Lien de visio (Zoom/Meet)</Label><Input placeholder="https://zoom.us/j/..." value={eventForm.link_url} onChange={e => setEventForm(f => ({ ...f, link_url: e.target.value }))} /></div>
-                    )}
-                    <Button className="w-full" onClick={saveEvent} disabled={!eventForm.title.trim()}>
-                      {editingEvent ? "Enregistrer" : "Créer"}
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
+              <>
+                <Button size="sm" onClick={() => { setEditingEvent(null); setEventDialogOpen(true); }}>
+                  <Plus className="w-4 h-4 mr-1" />Créer un événement
+                </Button>
+                <EventFormDialog
+                  open={eventDialogOpen}
+                  onOpenChange={(o) => { setEventDialogOpen(o); if (!o) setEditingEvent(null); }}
+                  onSave={saveEvent}
+                  isEditing={!!editingEvent}
+                  initialData={editingEvent ? {
+                    title: editingEvent.title,
+                    description: editingEvent.description || "",
+                    type: editingEvent.type,
+                    event_date: editingEvent.event_date || "",
+                    end_date: editingEvent.end_date || "",
+                    link_url: editingEvent.link_url || "",
+                    location: editingEvent.location || "",
+                    color: editingEvent.color || "primary",
+                    is_all_day: editingEvent.is_all_day ?? false,
+                    reminder_minutes: editingEvent.reminder_minutes ?? null,
+                  } : undefined}
+                />
+              </>
             )}
             <div className="space-y-3">
               {events.map(ev => {
                 const Icon = eventTypeIcon[ev.type] || Calendar;
+                const colorDot: Record<string, string> = {
+                  primary: "bg-primary", destructive: "bg-destructive", success: "bg-green-500",
+                  warning: "bg-amber-500", info: "bg-blue-500", purple: "bg-purple-500",
+                };
                 return (
                   <div key={ev.id} className="bg-card rounded-xl border border-border p-4">
-                    <div className="flex items-start justify-between">
+                    <div className="flex items-start justify-between gap-2">
                       <div className="flex gap-3">
-                        <div className="mt-0.5 p-2 rounded-lg bg-primary/10"><Icon className="w-4 h-4 text-primary" /></div>
-                        <div>
-                          <p className="font-medium text-foreground">{ev.title}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge variant="secondary" className="text-xs">{eventTypeLabel[ev.type] || ev.type}</Badge>
-                            {ev.event_date && <span className="text-xs text-muted-foreground">{format(new Date(ev.event_date), "dd MMM yyyy HH:mm", { locale: fr })}</span>}
+                        <div className="mt-0.5 p-2 rounded-lg bg-primary/10 shrink-0">
+                          <Icon className="w-4 h-4 text-primary" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium text-foreground">{ev.title}</p>
+                            {ev.color && <span className={cn("w-2.5 h-2.5 rounded-full shrink-0", colorDot[ev.color] || "bg-primary")} />}
                           </div>
+                          <div className="flex flex-wrap items-center gap-2 mt-1">
+                            <Badge variant="secondary" className="text-xs">{eventTypeLabel[ev.type] || ev.type}</Badge>
+                            {ev.is_all_day
+                              ? ev.event_date && <span className="text-xs text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" />{format(new Date(ev.event_date), "dd MMM yyyy", { locale: fr })} · Journée</span>
+                              : ev.event_date && <span className="text-xs text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" />{format(new Date(ev.event_date), "dd MMM yyyy HH:mm", { locale: fr })}{ev.end_date && ` → ${format(new Date(ev.end_date), "HH:mm")}`}</span>
+                            }
+                          </div>
+                          {ev.location && (
+                            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                              <MapPin className="w-3 h-3" />{ev.location}
+                            </p>
+                          )}
                           {ev.description && <p className="text-sm text-muted-foreground mt-1">{ev.description}</p>}
                           {ev.link_url && (
                             <a href={ev.link_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1">
@@ -471,7 +475,7 @@ export default function ClassDetailPage() {
                         </div>
                       </div>
                       {isTeacher && (
-                        <div className="flex gap-1">
+                        <div className="flex gap-1 shrink-0">
                           <Button variant="ghost" size="sm" onClick={() => openEditEvent(ev)}>Modifier</Button>
                           <Button variant="ghost" size="icon" className="text-destructive h-8 w-8" onClick={() => deleteEvent(ev.id)}>
                             <Trash2 className="w-3.5 h-3.5" />
