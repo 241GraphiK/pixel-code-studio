@@ -12,6 +12,8 @@ interface ChatInputProps {
   replyTo?: Message | null;
   onClearReply?: () => void;
   onSendMessage: (content: string, attachment?: { url: string; name: string; type: string }, replyToId?: string) => Promise<void>;
+  onTyping?: () => void;
+  onStopTyping?: () => void;
 }
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
