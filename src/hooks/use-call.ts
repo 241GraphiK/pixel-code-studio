@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export type CallStatus = "idle" | "calling" | "ringing" | "connected" | "ended";
+export type CallMode = "audio" | "video";
 
 interface CallState {
   status: CallStatus;
@@ -9,6 +10,8 @@ interface CallState {
   remoteUserId: string | null;
   remoteName: string | null;
   isMuted: boolean;
+  isVideoOff: boolean;
+  mode: CallMode;
   duration: number;
 }
 
@@ -26,15 +29,20 @@ export function useCall(userId: string | undefined, userName: string | undefined
     remoteUserId: null,
     remoteName: null,
     isMuted: false,
+    isVideoOff: false,
+    mode: "audio",
     duration: 0,
   });
 
   const peerConnection = useRef<RTCPeerConnection | null>(null);
   const localStream = useRef<MediaStream | null>(null);
   const remoteAudio = useRef<HTMLAudioElement | null>(null);
+  const localVideoRef = useRef<HTMLVideoElement | null>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const durationInterval = useRef<NodeJS.Timeout | null>(null);
   const incomingOfferRef = useRef<RTCSessionDescriptionInit | null>(null);
+  const incomingModeRef = useRef<CallMode>("audio");
 
   // Setup remote audio element
   useEffect(() => {
@@ -66,12 +74,14 @@ export function useCall(userId: string | undefined, userName: string | undefined
         }
 
         incomingOfferRef.current = payload.offer;
+        incomingModeRef.current = payload.mode || "audio";
         setState((prev) => ({
           ...prev,
           status: "ringing",
           conversationId: payload.conversationId,
           remoteUserId: payload.callerId,
           remoteName: payload.callerName,
+          mode: payload.mode || "audio",
         }));
       })
       .on("broadcast", { event: "call-rejected" }, ({ payload }) => {
@@ -83,6 +93,8 @@ export function useCall(userId: string | undefined, userName: string | undefined
           remoteUserId: null,
           remoteName: null,
           isMuted: false,
+          isVideoOff: false,
+          mode: "audio",
           duration: 0,
         });
         setTimeout(() => setState((p) => (p.status === "ended" ? { ...p, status: "idle" } : p)), 2000);
@@ -128,6 +140,8 @@ export function useCall(userId: string | undefined, userName: string | undefined
             remoteUserId: null,
             remoteName: null,
             isMuted: false,
+            isVideoOff: false,
+            mode: "audio",
             duration: 0,
           });
           setTimeout(
@@ -188,8 +202,15 @@ export function useCall(userId: string | undefined, userName: string | undefined
       };
 
       pc.ontrack = (event) => {
-        if (remoteAudio.current && event.streams[0]) {
-          remoteAudio.current.srcObject = event.streams[0];
+        if (event.streams[0]) {
+          // Check if there's a video track
+          const hasVideo = event.streams[0].getVideoTracks().length > 0;
+          if (hasVideo && remoteVideoRef.current) {
+            remoteVideoRef.current.srcObject = event.streams[0];
+          }
+          if (remoteAudio.current) {
+            remoteAudio.current.srcObject = event.streams[0];
+          }
         }
       };
 
@@ -205,11 +226,12 @@ export function useCall(userId: string | undefined, userName: string | undefined
   );
 
   const startCall = useCallback(
-    async (conversationId: string, targetUserId: string, targetName: string) => {
+    async (conversationId: string, targetUserId: string, targetName: string, mode: CallMode = "audio") => {
       if (!userId || !userName) return;
 
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const constraints: MediaStreamConstraints = { audio: true, video: mode === "video" };
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
         localStream.current = stream;
 
         const pc = createPeerConnection(conversationId);
@@ -234,6 +256,7 @@ export function useCall(userId: string | undefined, userName: string | undefined
                 callerName: userName,
                 targetUserId: targetUserId,
                 conversationId: conversationId,
+                mode: mode,
               },
             });
             setTimeout(() => supabase.removeChannel(targetChannel), 2000);
@@ -246,6 +269,8 @@ export function useCall(userId: string | undefined, userName: string | undefined
           remoteUserId: targetUserId,
           remoteName: targetName,
           isMuted: false,
+          isVideoOff: false,
+          mode,
           duration: 0,
         });
 
@@ -255,11 +280,13 @@ export function useCall(userId: string | undefined, userName: string | undefined
             if (prev.status === "calling") {
               cleanup();
               return {
-                status: "ended",
+                status: "ended" as const,
                 conversationId: null,
                 remoteUserId: null,
                 remoteName: null,
                 isMuted: false,
+                isVideoOff: false,
+                mode: "audio" as CallMode,
                 duration: 0,
               };
             }
@@ -283,7 +310,9 @@ export function useCall(userId: string | undefined, userName: string | undefined
     if (!state.conversationId || !incomingOfferRef.current || !userId) return;
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mode = incomingModeRef.current;
+      const constraints: MediaStreamConstraints = { audio: true, video: mode === "video" };
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
       localStream.current = stream;
 
       const pc = createPeerConnection(state.conversationId);
@@ -336,6 +365,8 @@ export function useCall(userId: string | undefined, userName: string | undefined
       remoteUserId: null,
       remoteName: null,
       isMuted: false,
+      isVideoOff: false,
+      mode: "audio",
       duration: 0,
     });
   }, [state.remoteUserId, cleanup]);
@@ -355,6 +386,8 @@ export function useCall(userId: string | undefined, userName: string | undefined
       remoteUserId: null,
       remoteName: null,
       isMuted: false,
+      isVideoOff: false,
+      mode: "audio",
       duration: 0,
     });
     setTimeout(
@@ -373,6 +406,28 @@ export function useCall(userId: string | undefined, userName: string | undefined
     }
   }, []);
 
+  const toggleVideo = useCallback(() => {
+    if (localStream.current) {
+      const videoTrack = localStream.current.getVideoTracks()[0];
+      if (videoTrack) {
+        videoTrack.enabled = !videoTrack.enabled;
+        setState((prev) => ({ ...prev, isVideoOff: !videoTrack.enabled }));
+      }
+    }
+  }, []);
+
+  const setVideoRefs = useCallback((local: HTMLVideoElement | null, remote: HTMLVideoElement | null) => {
+    localVideoRef.current = local;
+    remoteVideoRef.current = remote;
+    // Attach existing streams if any
+    if (local && localStream.current) {
+      local.srcObject = localStream.current;
+    }
+    if (remote && remoteAudio.current?.srcObject) {
+      remote.srcObject = remoteAudio.current.srcObject;
+    }
+  }, []);
+
   const formatDuration = (seconds: number) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
@@ -386,6 +441,8 @@ export function useCall(userId: string | undefined, userName: string | undefined
     rejectCall,
     endCall,
     toggleMute,
+    toggleVideo,
+    setVideoRefs,
     formatDuration,
   };
 }
