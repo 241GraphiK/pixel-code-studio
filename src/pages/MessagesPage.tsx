@@ -242,6 +242,12 @@ export default function MessagesPage() {
                               {format(new Date(msg.created_at), "HH:mm", { locale: fr })}
                             </p>
                           </div>
+                          <MessageReactions
+                            messageId={msg.id}
+                            reactions={getReactions(msg.id)}
+                            isMe={isMe}
+                            onToggle={toggleReaction}
+                          />
                         </div>
                       );
                     })}
