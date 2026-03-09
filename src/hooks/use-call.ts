@@ -34,6 +34,8 @@ export function useCall(userId: string | undefined, userName: string | undefined
     duration: 0,
   });
 
+  const callStartTime = useRef<number | null>(null);
+
   const peerConnection = useRef<RTCPeerConnection | null>(null);
   const localStream = useRef<MediaStream | null>(null);
   const remoteAudio = useRef<HTMLAudioElement | null>(null);
