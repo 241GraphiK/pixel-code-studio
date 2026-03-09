@@ -220,13 +220,16 @@ export function useMessages(conversationId: string | null) {
     };
   }, [conversationId, user]);
 
-  const sendMessage = async (content: string) => {
-    if (!conversationId || !user || !content.trim()) return;
+  const sendMessage = async (content: string, attachment?: { url: string; name: string; type: string }) => {
+    if (!conversationId || !user || (!content.trim() && !attachment)) return;
 
     await supabase.from("messages").insert({
       conversation_id: conversationId,
       sender_id: user.id,
-      content: content.trim(),
+      content: content.trim() || (attachment?.name ?? ""),
+      attachment_url: attachment?.url ?? null,
+      attachment_name: attachment?.name ?? null,
+      attachment_type: attachment?.type ?? null,
     });
 
     // Update conversation timestamp
