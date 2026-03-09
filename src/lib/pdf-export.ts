@@ -160,3 +160,155 @@ export function exportTeacherStatsPdf(
 
   doc.save(`statistiques-enseignant-${now.replace(/\//g, "-")}.pdf`);
 }
+
+export function exportCourseContentPdf(
+  courseTitle: string,
+  moduleTitle: string,
+  htmlContent: string,
+  plainText: string
+) {
+  const now = new Date().toLocaleDateString("fr-FR");
+  const safeCourseTitle = courseTitle.replace(/[^a-z0-9]/gi, "-").toLowerCase();
+
+  const printWindow = window.open("", "_blank");
+  if (!printWindow) return;
+
+  printWindow.document.write(`<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>${courseTitle} — ${moduleTitle}</title>
+  <style>
+    @page { size: A4; margin: 20mm 18mm 20mm 18mm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 11pt;
+      line-height: 1.7;
+      color: #1a1a2e;
+    }
+    .header {
+      border-bottom: 2px solid #3b82f6;
+      padding-bottom: 10px;
+      margin-bottom: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+    .header-brand { font-size: 18pt; font-weight: 700; color: #3b82f6; font-family: sans-serif; }
+    .header-meta { font-size: 8pt; color: #6b7280; font-family: sans-serif; text-align: right; }
+    .module-label {
+      font-size: 9pt;
+      font-family: sans-serif;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+    h1 {
+      font-size: 20pt;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 20px;
+      font-family: sans-serif;
+    }
+    .content h1, .content h2 {
+      font-family: sans-serif;
+      font-weight: 700;
+      color: #111827;
+      margin-top: 20px;
+      margin-bottom: 8px;
+    }
+    .content h1 { font-size: 15pt; }
+    .content h2 { font-size: 13pt; }
+    .content h3 { font-size: 11pt; font-weight: 700; font-family: sans-serif; margin-top: 14px; margin-bottom: 6px; }
+    .content p { margin-bottom: 10px; }
+    .content ul, .content ol { margin: 8px 0 10px 22px; }
+    .content li { margin-bottom: 4px; }
+    .content strong { font-weight: 700; }
+    .content em { font-style: italic; }
+    .content a { color: #3b82f6; text-decoration: underline; }
+    .content blockquote {
+      border-left: 3px solid #3b82f6;
+      padding: 6px 14px;
+      margin: 12px 0;
+      color: #374151;
+      background: #f0f7ff;
+      font-style: italic;
+    }
+    .content pre {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 12px 14px;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 9pt;
+      overflow-wrap: break-word;
+      white-space: pre-wrap;
+      margin: 10px 0;
+    }
+    .content code {
+      background: #f1f5f9;
+      color: #0f172a;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      font-size: 9pt;
+    }
+    .content pre code { background: none; color: inherit; padding: 0; }
+    .content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 10pt;
+    }
+    .content table th {
+      background: #3b82f6;
+      color: #fff;
+      padding: 6px 10px;
+      text-align: left;
+      font-family: sans-serif;
+    }
+    .content table td {
+      padding: 5px 10px;
+      border: 1px solid #e5e7eb;
+      color: #374151;
+    }
+    .content table tr:nth-child(even) td { background: #f3f4f6; }
+    .footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 8pt;
+      color: #9ca3af;
+      font-family: sans-serif;
+      padding-bottom: 4mm;
+    }
+    @media print { .footer { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-brand">Mentor</div>
+    <div class="header-meta">Exporté le ${now}</div>
+  </div>
+  <div class="module-label">${moduleTitle}</div>
+  <h1>${courseTitle}</h1>
+  <div class="content">
+    ${htmlContent || `<p>${plainText}</p>`}
+  </div>
+  <script>
+    window.onload = function() {
+      window.print();
+      setTimeout(function() { window.close(); }, 500);
+    };
+  </script>
+</body>
+</html>`);
+
+  printWindow.document.close();
+  printWindow.focus();
+}
+

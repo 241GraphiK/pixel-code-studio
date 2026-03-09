@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, BookOpen, Play, FileText, Video, Link2, Dumbbell, CheckCircle2, Circle, Clock, Users, Image, Trash2 } from "lucide-react";
+import { ArrowLeft, BookOpen, Play, FileText, Video, Link2, Dumbbell, CheckCircle2, Circle, Clock, Users, Image, Trash2, Download } from "lucide-react";
+import { exportCourseContentPdf } from "@/lib/pdf-export";
 import ResourceUpload from "@/components/resources/ResourceUpload";
 import AppLayout from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -293,6 +294,17 @@ export default function ModuleDetailPage() {
                   {!completedCourses.has(course.id) && (
                     <Button onClick={handleMarkComplete}>Marquer comme terminé</Button>
                   )}
+                  <Button
+                    variant="outline"
+                    onClick={() => exportCourseContentPdf(
+                      course.title,
+                      mod?.title || "Module",
+                      isRichTextContent ? courseContent : "",
+                      isRichTextContent ? "" : courseContent
+                    )}
+                  >
+                    <Download className="w-4 h-4 mr-2" /> Exporter en PDF
+                  </Button>
                 </div>
               </div>
             ) : (
