@@ -102,7 +102,8 @@ export default function TeacherModulesPage() {
             ))}
           </div>
         )}
-      </div>
+        </div>
+      </RoleGuard>
     </AppLayout>
   );
 }

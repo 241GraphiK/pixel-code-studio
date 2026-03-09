@@ -168,7 +168,8 @@ export default function CreateModulePage() {
             </Button>
           </div>
         </form>
-      </div>
+        </div>
+      </RoleGuard>
     </AppLayout>
   );
 }
