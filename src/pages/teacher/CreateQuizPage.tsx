@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import RoleGuard from "@/components/auth/RoleGuard";
 
 interface OptionForm {
   text: string;
@@ -182,7 +183,8 @@ export default function CreateQuizPage() {
 
   return (
     <AppLayout>
-      <div className="max-w-3xl mx-auto space-y-6 animate-fade-in">
+      <RoleGuard allowedRoles={["teacher", "admin"]}>
+        <div className="max-w-3xl mx-auto space-y-6 animate-fade-in">
         <button onClick={() => navigate(-1)} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="w-4 h-4" /> Retour
         </button>
@@ -373,6 +375,7 @@ export default function CreateQuizPage() {
           </div>
         </form>
       </div>
+      </RoleGuard>
     </AppLayout>
   );
 }

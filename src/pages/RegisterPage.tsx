@@ -31,7 +31,7 @@ export default function RegisterPage() {
     setLoading(true);
     const { error } = await signUp(form.email, form.password, {
       name: form.name,
-      role: form.role,
+      role: "student",
       institution: form.institution,
       field: form.field,
       level: form.level,
@@ -90,16 +90,8 @@ export default function RegisterPage() {
                 <Input type="password" placeholder="••••••" value={form.confirmPassword} onChange={(e) => update("confirmPassword", e.target.value)} required />
               </div>
             </div>
-            <div className="space-y-2">
-              <Label>Rôle</Label>
-              <Select value={form.role} onValueChange={(v) => update("role", v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="student">Étudiant</SelectItem>
-                  <SelectItem value="teacher">Enseignant</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Role is now forced to student only - removed selection */}
+            <input type="hidden" name="role" value="student" />
             <div className="space-y-2">
               <Label>Institution</Label>
               <Input placeholder="Université d'Alger" value={form.institution} onChange={(e) => update("institution", e.target.value)} />
