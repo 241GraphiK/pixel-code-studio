@@ -30,6 +30,7 @@ import CalendarPage from "./pages/CalendarPage";
 import TeacherStatsPage from "./pages/teacher/TeacherStatsPage";
 import EditModulePage from "./pages/teacher/EditModulePage";
 import ClassDetailPage from "./pages/ClassDetailPage";
+import AboutPage from "./pages/AboutPage";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,7 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<LandingPage />} />
+              <Route path="/about" element={<AboutPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
