@@ -155,7 +155,7 @@ export default function Dashboard() {
             <h2 className="text-lg font-semibold text-foreground">QCM récents</h2>
             <Link to="/quizzes" className="text-sm text-primary hover:underline">Voir tout →</Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {recentQuizzes.map(q => (
               <Link key={q.id} to={`/quizzes/${q.id}`} className="bg-card rounded-xl border border-border p-5 shadow-soft hover:shadow-medium transition-all">
                 <div className="flex items-center gap-2 mb-2">
