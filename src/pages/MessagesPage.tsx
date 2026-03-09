@@ -19,6 +19,7 @@ import { OnlineIndicator } from "@/components/messages/OnlineIndicator";
 import { MessageAttachment } from "@/components/messages/MessageAttachment";
 import { ChatInput } from "@/components/messages/ChatInput";
 import { MessageReactions, useReactions } from "@/components/messages/MessageReactions";
+import { useTypingIndicator } from "@/hooks/use-typing";
 
 export default function MessagesPage() {
   const { user } = useAuth();
