@@ -19,9 +19,10 @@ import { OnlineIndicator } from "@/components/messages/OnlineIndicator";
 import { MessageAttachment } from "@/components/messages/MessageAttachment";
 import { ChatInput } from "@/components/messages/ChatInput";
 import { MessageReactions, useReactions } from "@/components/messages/MessageReactions";
+import { useTypingIndicator } from "@/hooks/use-typing";
 
 export default function MessagesPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { conversations, loading: convsLoading, refetch } = useConversations();
   const [selectedConvId, setSelectedConvId] = useState<string | null>(null);
   const { messages, loading: msgsLoading, sendMessage, deleteMessage } = useMessages(selectedConvId);
@@ -31,6 +32,7 @@ export default function MessagesPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { isOnline } = usePresence();
   const { fetchReactions, toggleReaction, getReactions } = useReactions(selectedConvId);
+  const { typingNames, sendTyping, sendStopTyping } = useTypingIndicator(selectedConvId, user?.id);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -298,6 +300,18 @@ export default function MessagesPage() {
                       );
                     })}
                     <div ref={messagesEndRef} />
+                    {typingNames.length > 0 && (
+                      <div className="flex items-center gap-2 px-2 py-1">
+                        <div className="flex gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:0ms]" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:150ms]" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:300ms]" />
+                        </div>
+                        <span className="text-xs text-muted-foreground italic">
+                          {typingNames.join(", ")} écrit...
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </ScrollArea>
 
@@ -307,6 +321,8 @@ export default function MessagesPage() {
                   replyTo={replyTo}
                   onClearReply={() => setReplyTo(null)}
                   onSendMessage={sendMessage}
+                  onTyping={() => sendTyping(profile?.name || "Utilisateur")}
+                  onStopTyping={sendStopTyping}
                 />
               </>
             ) : (
