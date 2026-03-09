@@ -89,6 +89,9 @@ export default function TeacherModulesPage() {
                   <Button variant="outline" size="sm" asChild>
                     <Link to={`/modules/${m.id}`}><Pencil className="w-3.5 h-3.5 mr-1" /> Voir</Link>
                   </Button>
+                  <Button variant="secondary" size="sm" asChild>
+                    <Link to={`/teacher/modules/${m.id}/edit`}><Settings2 className="w-3.5 h-3.5 mr-1" /> Modifier</Link>
+                  </Button>
                   <Button variant="ghost" size="sm" onClick={() => handleDelete(m.id)} className="text-destructive hover:text-destructive">
                     <Trash2 className="w-3.5 h-3.5" />
                   </Button>
