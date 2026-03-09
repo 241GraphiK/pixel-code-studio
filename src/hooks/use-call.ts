@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export type CallStatus = "idle" | "calling" | "ringing" | "connected" | "ended";
+export type CallMode = "audio" | "video";
 
 interface CallState {
   status: CallStatus;
@@ -9,6 +10,8 @@ interface CallState {
   remoteUserId: string | null;
   remoteName: string | null;
   isMuted: boolean;
+  isVideoOff: boolean;
+  mode: CallMode;
   duration: number;
 }
 
