@@ -30,6 +30,7 @@ export default function MessagesPage() {
   const { conversations, loading: convsLoading, refetch } = useConversations();
   const [selectedConvId, setSelectedConvId] = useState<string | null>(null);
   const { messages, loading: msgsLoading, sendMessage, deleteMessage } = useMessages(selectedConvId);
+  const { callLogs } = useCallLogs(selectedConvId);
   const [searchQuery, setSearchQuery] = useState("");
   const [showMobileChat, setShowMobileChat] = useState(false);
   const [replyTo, setReplyTo] = useState<Message | null>(null);
@@ -38,6 +39,15 @@ export default function MessagesPage() {
   const { fetchReactions, toggleReaction, getReactions } = useReactions(selectedConvId);
   const { typingNames, sendTyping, sendStopTyping } = useTypingIndicator(selectedConvId, user?.id);
   const { callState, startCall, acceptCall, rejectCall, endCall, toggleMute, toggleVideo, setVideoRefs, formatDuration } = useCall(user?.id, profile?.name);
+
+  // Merge messages and call logs into a single timeline
+  const timeline = useMemo(() => {
+    const items: Array<{ type: "message"; data: Message } | { type: "call"; data: typeof callLogs[0] }> = [];
+    messages.forEach(m => items.push({ type: "message", data: m }));
+    callLogs.forEach(c => items.push({ type: "call", data: c }));
+    items.sort((a, b) => new Date(a.data.created_at).getTime() - new Date(b.data.created_at).getTime());
+    return items;
+  }, [messages, callLogs]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
