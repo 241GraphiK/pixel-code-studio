@@ -224,11 +224,12 @@ export function useCall(userId: string | undefined, userName: string | undefined
   );
 
   const startCall = useCallback(
-    async (conversationId: string, targetUserId: string, targetName: string) => {
+    async (conversationId: string, targetUserId: string, targetName: string, mode: CallMode = "audio") => {
       if (!userId || !userName) return;
 
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const constraints: MediaStreamConstraints = { audio: true, video: mode === "video" };
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
         localStream.current = stream;
 
         const pc = createPeerConnection(conversationId);
