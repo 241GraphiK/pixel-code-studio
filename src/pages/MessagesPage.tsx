@@ -29,6 +29,7 @@ export default function MessagesPage() {
   const [showMobileChat, setShowMobileChat] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { isOnline } = usePresence();
+  const { fetchReactions, toggleReaction, getReactions } = useReactions(selectedConvId);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
