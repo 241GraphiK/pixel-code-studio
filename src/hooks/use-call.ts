@@ -93,6 +93,8 @@ export function useCall(userId: string | undefined, userName: string | undefined
           remoteUserId: null,
           remoteName: null,
           isMuted: false,
+          isVideoOff: false,
+          mode: "audio",
           duration: 0,
         });
         setTimeout(() => setState((p) => (p.status === "ended" ? { ...p, status: "idle" } : p)), 2000);
