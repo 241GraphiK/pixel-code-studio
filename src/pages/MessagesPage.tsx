@@ -176,7 +176,7 @@ export default function MessagesPage() {
                       className="absolute -bottom-0.5 -right-0.5"
                     />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <p className="text-sm font-medium text-foreground">{getOtherParticipant(selectedConv)?.name}</p>
                     <p className="text-xs text-muted-foreground">
                       {isOnline(getOtherParticipant(selectedConv)?.user_id || "")
@@ -184,7 +184,34 @@ export default function MessagesPage() {
                         : (getOtherParticipant(selectedConv)?.role === "teacher" ? "Enseignant" : "Étudiant")}
                     </p>
                   </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="shrink-0 rounded-full"
+                    disabled={callState.status !== "idle"}
+                    onClick={() => {
+                      const other = getOtherParticipant(selectedConv);
+                      if (other && selectedConvId) {
+                        startCall(selectedConvId, other.user_id, other.name);
+                      }
+                    }}
+                  >
+                    <Phone className="w-4 h-4" />
+                  </Button>
                 </div>
+
+                {/* Active call bar */}
+                {(callState.status === "calling" || callState.status === "connected" || callState.status === "ended") &&
+                  callState.conversationId === selectedConvId && (
+                  <ActiveCallBar
+                    status={callState.status}
+                    remoteName={callState.remoteName}
+                    isMuted={callState.isMuted}
+                    duration={formatDuration(callState.duration)}
+                    onToggleMute={toggleMute}
+                    onEndCall={endCall}
+                  />
+                )}
 
                 {/* Messages */}
                 <ScrollArea className="flex-1 p-4">
