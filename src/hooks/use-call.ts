@@ -313,14 +313,17 @@ export function useCall(userId: string | undefined, userName: string | undefined
   const rejectCall = useCallback(() => {
     if (state.remoteUserId) {
       const rejectChannel = supabase.channel(`calls-user-${state.remoteUserId}`);
-      rejectChannel.subscribe().then(() => {
-        rejectChannel.send({
-          type: "broadcast",
-          event: "call-rejected",
-          payload: { targetUserId: state.remoteUserId, reason: "declined" },
+      rejectChannel
+        .subscribe((status) => {
+          if (status === "SUBSCRIBED") {
+            rejectChannel.send({
+              type: "broadcast",
+              event: "call-rejected",
+              payload: { targetUserId: state.remoteUserId, reason: "declined" },
+            });
+            setTimeout(() => supabase.removeChannel(rejectChannel), 1000);
+          }
         });
-        setTimeout(() => supabase.removeChannel(rejectChannel), 1000);
-      });
     }
     incomingOfferRef.current = null;
     cleanup();
