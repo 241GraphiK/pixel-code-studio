@@ -1,5 +1,10 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  startRingtone, stopRingtone,
+  startDialing, stopDialing,
+  playConnectedChime, playEndCallTone, playNotificationBeep,
+} from "@/lib/call-sounds";
 
 export type CallStatus = "idle" | "calling" | "ringing" | "connected" | "ended";
 export type CallMode = "audio" | "video";
@@ -77,6 +82,7 @@ export function useCall(userId: string | undefined, userName: string | undefined
 
         incomingOfferRef.current = payload.offer;
         incomingModeRef.current = payload.mode || "audio";
+        startRingtone();
         setState((prev) => ({
           ...prev,
           status: "ringing",
@@ -88,6 +94,8 @@ export function useCall(userId: string | undefined, userName: string | undefined
       })
       .on("broadcast", { event: "call-rejected" }, ({ payload }) => {
         if (payload.targetUserId !== userId) return;
+        stopDialing();
+        playNotificationBeep();
         cleanup();
         setState({
           status: "ended",
@@ -120,7 +128,9 @@ export function useCall(userId: string | undefined, userName: string | undefined
           await peerConnection.current.setRemoteDescription(
             new RTCSessionDescription(payload.answer)
           );
-      setState((prev) => ({ ...prev, status: "connected" }));
+          stopDialing();
+          playConnectedChime();
+          setState((prev) => ({ ...prev, status: "connected" }));
           callStartTime.current = Date.now();
           startDurationTimer();
         })
@@ -136,6 +146,9 @@ export function useCall(userId: string | undefined, userName: string | undefined
         })
         .on("broadcast", { event: "call-end" }, ({ payload }) => {
           if (payload.senderId === userId) return;
+          stopRingtone();
+          stopDialing();
+          playEndCallTone();
           cleanup();
           setState({
             status: "ended",
@@ -171,6 +184,8 @@ export function useCall(userId: string | undefined, userName: string | undefined
       clearInterval(durationInterval.current);
       durationInterval.current = null;
     }
+    stopRingtone();
+    stopDialing();
     if (localStream.current) {
       localStream.current.getTracks().forEach((t) => t.stop());
       localStream.current = null;
@@ -319,6 +334,7 @@ export function useCall(userId: string | undefined, userName: string | undefined
           }
         });
 
+        startDialing();
         setState({
           status: "calling",
           conversationId,
@@ -368,6 +384,8 @@ export function useCall(userId: string | undefined, userName: string | undefined
     if (!state.conversationId || !incomingOfferRef.current || !userId) return;
 
     try {
+      stopRingtone();
+      playConnectedChime();
       const mode = incomingModeRef.current;
       const constraints: MediaStreamConstraints = { audio: true, video: mode === "video" };
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -403,6 +421,7 @@ export function useCall(userId: string | undefined, userName: string | undefined
 
 
   const rejectCall = useCallback(() => {
+    stopRingtone();
     if (state.remoteUserId) {
       const rejectChannel = supabase.channel(`calls-user-${state.remoteUserId}`);
       rejectChannel
@@ -437,6 +456,7 @@ export function useCall(userId: string | undefined, userName: string | undefined
   }, [state.remoteUserId, state.conversationId, state.mode, cleanup, logCall]);
 
   const endCall = useCallback(() => {
+    playEndCallTone();
     const convId = state.conversationId;
     const remoteId = state.remoteUserId;
     const mode = state.mode;
