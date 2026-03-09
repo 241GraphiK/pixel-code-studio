@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { exportQuizResultsPdf, exportTeacherStatsPdf } from "@/lib/pdf-export";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import StudentDrillModal from "@/components/teacher/StudentDrillModal";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell, PieChart, Pie, Legend,
