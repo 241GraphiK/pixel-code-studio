@@ -349,8 +349,8 @@ export function useCall(userId: string | undefined, userName: string | undefined
     if (state.remoteUserId) {
       const rejectChannel = supabase.channel(`calls-user-${state.remoteUserId}`);
       rejectChannel
-        .subscribe((status) => {
-          if (status === "SUBSCRIBED") {
+        .subscribe((st) => {
+          if (st === "SUBSCRIBED") {
             rejectChannel.send({
               type: "broadcast",
               event: "call-rejected",
@@ -359,6 +359,11 @@ export function useCall(userId: string | undefined, userName: string | undefined
             setTimeout(() => supabase.removeChannel(rejectChannel), 1000);
           }
         });
+
+      // Log rejected call
+      if (state.conversationId && state.remoteUserId) {
+        logCall(state.conversationId, state.remoteUserId, state.mode, "rejected", 0);
+      }
     }
     incomingOfferRef.current = null;
     cleanup();
@@ -372,7 +377,7 @@ export function useCall(userId: string | undefined, userName: string | undefined
       mode: "audio",
       duration: 0,
     });
-  }, [state.remoteUserId, cleanup]);
+  }, [state.remoteUserId, state.conversationId, state.mode, cleanup, logCall]);
 
   const logCall = useCallback(async (
     conversationId: string,
