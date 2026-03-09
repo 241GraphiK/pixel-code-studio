@@ -45,23 +45,24 @@ export default function TeacherModulesPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6 animate-fade-in">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <BookOpen className="w-6 h-6 text-primary" /> Mes modules
-            </h1>
-            <p className="text-muted-foreground">Gérez vos modules et cours</p>
+      <RoleGuard allowedRoles={["teacher", "admin"]}>
+        <div className="space-y-6 animate-fade-in">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+                <BookOpen className="w-6 h-6 text-primary" /> Mes modules
+              </h1>
+              <p className="text-muted-foreground">Gérez vos modules et cours</p>
+            </div>
+            <div className="flex gap-2">
+              <Button asChild>
+                <Link to="/teacher/modules/create"><Plus className="w-4 h-4 mr-1" /> Nouveau module</Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link to="/teacher/quizzes/create"><FileQuestion className="w-4 h-4 mr-1" /> Nouveau QCM</Link>
+              </Button>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <Button asChild>
-              <Link to="/teacher/modules/create"><Plus className="w-4 h-4 mr-1" /> Nouveau module</Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link to="/teacher/quizzes/create"><FileQuestion className="w-4 h-4 mr-1" /> Nouveau QCM</Link>
-            </Button>
-          </div>
-        </div>
 
         {loading ? (
           <div className="flex justify-center py-12">
