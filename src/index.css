@@ -148,3 +148,43 @@
     box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
   }
 }
+
+/* Rich Text Editor — Table styles */
+.rte-table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.75rem 0;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  border: 1px solid hsl(var(--border));
+}
+
+.rte-table-header,
+.rte-table-cell {
+  border: 1px solid hsl(var(--border));
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+  min-width: 2rem;
+  position: relative;
+}
+
+.rte-table-header {
+  background-color: hsl(var(--muted));
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: hsl(var(--foreground));
+}
+
+.rte-table-cell {
+  background-color: hsl(var(--background));
+  font-size: 0.875rem;
+  color: hsl(var(--foreground));
+}
+
+.rte-table-cell.selectedCell,
+.rte-table-header.selectedCell {
+  background-color: hsl(var(--primary) / 0.1);
+  outline: 2px solid hsl(var(--primary) / 0.4);
+  outline-offset: -2px;
+}
