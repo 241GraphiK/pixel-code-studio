@@ -18,13 +18,29 @@ interface ChatInputProps {
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
-export function ChatInput({ conversationId, replyTo, onClearReply, onSendMessage }: ChatInputProps) {
+export function ChatInput({ conversationId, replyTo, onClearReply, onSendMessage, onTyping, onStopTyping }: ChatInputProps) {
   const { user } = useAuth();
   const [message, setMessage] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setMessage(e.target.value);
+    onTyping?.();
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => {
+      onStopTyping?.();
+    }, 2000);
+  }, [onTyping, onStopTyping]);
+
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    };
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
