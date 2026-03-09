@@ -2,37 +2,35 @@ import { useState, useEffect, useRef } from "react";
 import AppLayout from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/use-auth";
 import { useConversations, useMessages, createConversation, type Conversation } from "@/hooks/use-messages";
+import { usePresence } from "@/hooks/use-presence";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { MessageSquare, Send, Plus, Search, ArrowLeft } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import { MessageSquare, Plus, Search, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { OnlineIndicator } from "@/components/messages/OnlineIndicator";
+import { MessageAttachment } from "@/components/messages/MessageAttachment";
+import { ChatInput } from "@/components/messages/ChatInput";
 
 export default function MessagesPage() {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const { conversations, loading: convsLoading, refetch } = useConversations();
   const [selectedConvId, setSelectedConvId] = useState<string | null>(null);
   const { messages, loading: msgsLoading, sendMessage } = useMessages(selectedConvId);
-  const [newMessage, setNewMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showMobileChat, setShowMobileChat] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { isOnline } = usePresence();
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-
-  const handleSend = async () => {
-    if (!newMessage.trim()) return;
-    await sendMessage(newMessage);
-    setNewMessage("");
-  };
 
   const handleSelectConv = (convId: string) => {
     setSelectedConvId(convId);
@@ -75,7 +73,11 @@ export default function MessagesPage() {
                   className="pl-9"
                 />
               </div>
-              <NewConversationDialog userId={user?.id} onCreated={(convId) => { refetch(); setSelectedConvId(convId); setShowMobileChat(true); }} />
+              <NewConversationDialog
+                userId={user?.id}
+                isOnline={isOnline}
+                onCreated={(convId) => { refetch(); setSelectedConvId(convId); setShowMobileChat(true); }}
+              />
             </div>
 
             <ScrollArea className="flex-1">
@@ -90,6 +92,7 @@ export default function MessagesPage() {
                 filteredConvs.map(conv => {
                   const other = getOtherParticipant(conv);
                   const initials = other?.name?.split(" ").map(n => n[0]).join("").toUpperCase() || "?";
+                  const otherOnline = isOnline(other?.user_id || "");
                   return (
                     <button
                       key={conv.id}
@@ -99,10 +102,13 @@ export default function MessagesPage() {
                         selectedConvId === conv.id && "bg-accent"
                       )}
                     >
-                      <Avatar className="w-10 h-10 shrink-0">
-                        <AvatarImage src={other?.avatar_url || ""} />
-                        <AvatarFallback className="bg-primary/10 text-primary text-sm">{initials}</AvatarFallback>
-                      </Avatar>
+                      <div className="relative shrink-0">
+                        <Avatar className="w-10 h-10">
+                          <AvatarImage src={other?.avatar_url || ""} />
+                          <AvatarFallback className="bg-primary/10 text-primary text-sm">{initials}</AvatarFallback>
+                        </Avatar>
+                        <OnlineIndicator isOnline={otherOnline} className="absolute -bottom-0.5 -right-0.5" />
+                      </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <p className="text-sm font-medium text-foreground truncate">{other?.name}</p>
@@ -114,7 +120,9 @@ export default function MessagesPage() {
                         </div>
                         <div className="flex items-center justify-between">
                           <p className="text-xs text-muted-foreground truncate">
-                            {conv.lastMessage?.content || "Nouvelle conversation"}
+                            {conv.lastMessage?.attachment_url
+                              ? `📎 ${conv.lastMessage?.attachment_name || "Fichier"}`
+                              : conv.lastMessage?.content || "Nouvelle conversation"}
                           </p>
                           {conv.unreadCount > 0 && (
                             <span className="shrink-0 ml-1 w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
@@ -142,14 +150,24 @@ export default function MessagesPage() {
                   <button onClick={() => setShowMobileChat(false)} className="md:hidden">
                     <ArrowLeft className="w-5 h-5" />
                   </button>
-                  <Avatar className="w-8 h-8">
-                    <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                      {getOtherParticipant(selectedConv)?.name?.split(" ").map(n => n[0]).join("").toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+                  <div className="relative">
+                    <Avatar className="w-8 h-8">
+                      <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                        {getOtherParticipant(selectedConv)?.name?.split(" ").map(n => n[0]).join("").toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <OnlineIndicator
+                      isOnline={isOnline(getOtherParticipant(selectedConv)?.user_id || "")}
+                      className="absolute -bottom-0.5 -right-0.5"
+                    />
+                  </div>
                   <div>
                     <p className="text-sm font-medium text-foreground">{getOtherParticipant(selectedConv)?.name}</p>
-                    <p className="text-xs text-muted-foreground capitalize">{getOtherParticipant(selectedConv)?.role === "teacher" ? "Enseignant" : "Étudiant"}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {isOnline(getOtherParticipant(selectedConv)?.user_id || "")
+                        ? <span className="text-green-600 dark:text-green-400">En ligne</span>
+                        : (getOtherParticipant(selectedConv)?.role === "teacher" ? "Enseignant" : "Étudiant")}
+                    </p>
                   </div>
                 </div>
 
@@ -166,7 +184,19 @@ export default function MessagesPage() {
                               ? "bg-primary text-primary-foreground rounded-br-md"
                               : "bg-muted text-foreground rounded-bl-md"
                           )}>
-                            <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                            {msg.attachment_url && msg.attachment_name && msg.attachment_type && (
+                              <div className="mb-1">
+                                <MessageAttachment
+                                  url={msg.attachment_url}
+                                  name={msg.attachment_name}
+                                  type={msg.attachment_type}
+                                  isMe={isMe}
+                                />
+                              </div>
+                            )}
+                            {msg.content && msg.content !== msg.attachment_name && (
+                              <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                            )}
                             <p className={cn(
                               "text-[10px] mt-1",
                               isMe ? "text-primary-foreground/70" : "text-muted-foreground"
@@ -182,22 +212,10 @@ export default function MessagesPage() {
                 </ScrollArea>
 
                 {/* Input */}
-                <div className="p-3 border-t border-border">
-                  <form
-                    onSubmit={e => { e.preventDefault(); handleSend(); }}
-                    className="flex items-center gap-2"
-                  >
-                    <Input
-                      value={newMessage}
-                      onChange={e => setNewMessage(e.target.value)}
-                      placeholder="Écrivez un message..."
-                      className="flex-1"
-                    />
-                    <Button type="submit" size="icon" disabled={!newMessage.trim()}>
-                      <Send className="w-4 h-4" />
-                    </Button>
-                  </form>
-                </div>
+                <ChatInput
+                  conversationId={selectedConvId!}
+                  onSendMessage={sendMessage}
+                />
               </>
             ) : (
               <div className="flex-1 flex items-center justify-center">
@@ -214,7 +232,7 @@ export default function MessagesPage() {
   );
 }
 
-function NewConversationDialog({ userId, onCreated }: { userId?: string; onCreated: (convId: string) => void }) {
+function NewConversationDialog({ userId, isOnline, onCreated }: { userId?: string; isOnline: (id: string) => boolean; onCreated: (convId: string) => void }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [users, setUsers] = useState<{ id: string; name: string; role: string; avatar_url: string | null }[]>([]);
@@ -259,6 +277,7 @@ function NewConversationDialog({ userId, onCreated }: { userId?: string; onCreat
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Nouvelle conversation</DialogTitle>
+          <DialogDescription>Sélectionnez un utilisateur pour démarrer une conversation</DialogDescription>
         </DialogHeader>
         <Input
           placeholder="Rechercher un utilisateur..."
@@ -277,12 +296,15 @@ function NewConversationDialog({ userId, onCreated }: { userId?: string; onCreat
                 onClick={() => handleSelect(u.id)}
                 className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-colors"
               >
-                <Avatar className="w-8 h-8">
-                  <AvatarImage src={u.avatar_url || ""} />
-                  <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                    {u.name.split(" ").map(n => n[0]).join("").toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="relative">
+                  <Avatar className="w-8 h-8">
+                    <AvatarImage src={u.avatar_url || ""} />
+                    <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                      {u.name.split(" ").map(n => n[0]).join("").toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <OnlineIndicator isOnline={isOnline(u.id)} className="absolute -bottom-0.5 -right-0.5" />
+                </div>
                 <div className="text-left">
                   <p className="text-sm font-medium">{u.name}</p>
                   <p className="text-xs text-muted-foreground capitalize">
