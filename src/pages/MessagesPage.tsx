@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import AppLayout from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/use-auth";
 import { useConversations, useMessages, createConversation, type Conversation, type Message } from "@/hooks/use-messages";
 import { usePresence } from "@/hooks/use-presence";
+import { useCallLogs } from "@/hooks/use-call-logs";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
