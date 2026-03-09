@@ -94,34 +94,49 @@ export type Database = {
       class_events: {
         Row: {
           class_id: string
+          color: string | null
           created_at: string
           description: string | null
+          end_date: string | null
           event_date: string | null
           id: string
+          is_all_day: boolean | null
           link_url: string | null
+          location: string | null
           quiz_id: string | null
+          reminder_minutes: number | null
           title: string
           type: string
         }
         Insert: {
           class_id: string
+          color?: string | null
           created_at?: string
           description?: string | null
+          end_date?: string | null
           event_date?: string | null
           id?: string
+          is_all_day?: boolean | null
           link_url?: string | null
+          location?: string | null
           quiz_id?: string | null
+          reminder_minutes?: number | null
           title: string
           type?: string
         }
         Update: {
           class_id?: string
+          color?: string | null
           created_at?: string
           description?: string | null
+          end_date?: string | null
           event_date?: string | null
           id?: string
+          is_all_day?: boolean | null
           link_url?: string | null
+          location?: string | null
           quiz_id?: string | null
+          reminder_minutes?: number | null
           title?: string
           type?: string
         }
