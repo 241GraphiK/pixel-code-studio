@@ -366,6 +366,8 @@ export function useCall(userId: string | undefined, userName: string | undefined
       remoteUserId: null,
       remoteName: null,
       isMuted: false,
+      isVideoOff: false,
+      mode: "audio",
       duration: 0,
     });
   }, [state.remoteUserId, cleanup]);
