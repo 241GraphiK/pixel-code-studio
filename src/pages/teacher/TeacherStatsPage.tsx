@@ -454,6 +454,15 @@ export default function TeacherStatsPage() {
           </>
         )}
       </div>
+
+      {/* Student drill-down modal */}
+      <StudentDrillModal
+        open={!!drillStudent}
+        onClose={() => setDrillStudent(null)}
+        studentId={drillStudent?.id ?? null}
+        studentName={drillStudent?.name ?? ""}
+        attempts={attempts}
+      />
     </AppLayout>
   );
 }
