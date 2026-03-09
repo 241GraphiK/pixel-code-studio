@@ -262,11 +262,11 @@ export default function ModuleDetailPage() {
                   )}
                 </div>
 
-                {(courseResources.length > 0 || (isTeacher && mod?.teacher_id === user?.id)) && (
+                {(courseResources.length > 0 || (isTeacher)) && (
                   <div className="mt-6 pt-6 border-t border-border">
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="font-semibold text-foreground">Ressources</h3>
-                      {isTeacher && mod?.teacher_id === user?.id && selectedCourse && (
+                      {isTeacher && selectedCourse && (
                         <ResourceUpload courseId={selectedCourse} onUploaded={refetchResources} />
                       )}
                     </div>
