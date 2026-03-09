@@ -36,8 +36,14 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
             <span className="text-3xl">🚫</span>
           </div>
           <h2 className="text-xl font-bold text-foreground mb-2">Compte bloqué</h2>
-           <p className="text-muted-foreground mb-4">
-             Votre compte a été bloqué par un administrateur. Contactez le support pour plus d'informations.
+           <p className="text-muted-foreground mb-2">
+             Votre compte a été bloqué par un administrateur.
+           </p>
+           <p className="text-muted-foreground mb-4 text-sm">
+             Pour toute question, contactez le support à :{" "}
+             <a href="mailto:josephekangaedzeghe@gmail.com" className="text-primary underline hover:text-primary/80">
+               josephekangaedzeghe@gmail.com
+             </a>
            </p>
            <Button variant="destructive" onClick={handleSignOut} className="gap-2">
              <LogOut className="w-4 h-4" />
