@@ -223,19 +223,22 @@ export function useCall(userId: string | undefined, userName: string | undefined
 
         // Send offer via the target user's personal channel
         const targetChannel = supabase.channel(`calls-user-${targetUserId}`);
-        await targetChannel.subscribe();
-        await targetChannel.send({
-          type: "broadcast",
-          event: "call-offer",
-          payload: {
-            offer: offer,
-            callerId: userId,
-            callerName: userName,
-            targetUserId: targetUserId,
-            conversationId: conversationId,
-          },
+        targetChannel.subscribe((status) => {
+          if (status === "SUBSCRIBED") {
+            targetChannel.send({
+              type: "broadcast",
+              event: "call-offer",
+              payload: {
+                offer: offer,
+                callerId: userId,
+                callerName: userName,
+                targetUserId: targetUserId,
+                conversationId: conversationId,
+              },
+            });
+            setTimeout(() => supabase.removeChannel(targetChannel), 2000);
+          }
         });
-        supabase.removeChannel(targetChannel);
 
         setState({
           status: "calling",
