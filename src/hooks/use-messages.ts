@@ -234,7 +234,7 @@ export function useMessages(conversationId: string | null) {
     };
   }, [conversationId, user]);
 
-  const sendMessage = async (content: string, attachment?: { url: string; name: string; type: string }) => {
+  const sendMessage = async (content: string, attachment?: { url: string; name: string; type: string }, replyToId?: string) => {
     if (!conversationId || !user || (!content.trim() && !attachment)) return;
 
     await supabase.from("messages").insert({
@@ -244,6 +244,7 @@ export function useMessages(conversationId: string | null) {
       attachment_url: attachment?.url ?? null,
       attachment_name: attachment?.name ?? null,
       attachment_type: attachment?.type ?? null,
+      reply_to_id: replyToId ?? null,
     });
 
     // Update conversation timestamp
