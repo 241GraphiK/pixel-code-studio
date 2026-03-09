@@ -200,8 +200,15 @@ export function useCall(userId: string | undefined, userName: string | undefined
       };
 
       pc.ontrack = (event) => {
-        if (remoteAudio.current && event.streams[0]) {
-          remoteAudio.current.srcObject = event.streams[0];
+        if (event.streams[0]) {
+          // Check if there's a video track
+          const hasVideo = event.streams[0].getVideoTracks().length > 0;
+          if (hasVideo && remoteVideoRef.current) {
+            remoteVideoRef.current.srcObject = event.streams[0];
+          }
+          if (remoteAudio.current) {
+            remoteAudio.current.srcObject = event.streams[0];
+          }
         }
       };
 
