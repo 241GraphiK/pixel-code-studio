@@ -26,6 +26,7 @@ import AchievementsPage from "./pages/AchievementsPage";
 import LeaderboardPage from "./pages/LeaderboardPage";
 import MessagesPage from "./pages/MessagesPage";
 import CallHistoryPage from "./pages/CallHistoryPage";
+import CalendarPage from "./pages/CalendarPage";
 import TeacherStatsPage from "./pages/teacher/TeacherStatsPage";
 import EditModulePage from "./pages/teacher/EditModulePage";
 import ClassDetailPage from "./pages/ClassDetailPage";
