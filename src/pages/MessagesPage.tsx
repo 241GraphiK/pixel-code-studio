@@ -69,8 +69,22 @@ export default function MessagesPage() {
       {callState.status === "ringing" && (
         <IncomingCallDialog
           remoteName={callState.remoteName}
+          mode={callState.mode}
           onAccept={acceptCall}
           onReject={rejectCall}
+        />
+      )}
+      {callState.mode === "video" && (callState.status === "calling" || callState.status === "connected") && (
+        <VideoCallOverlay
+          status={callState.status}
+          remoteName={callState.remoteName}
+          isMuted={callState.isMuted}
+          isVideoOff={callState.isVideoOff}
+          duration={formatDuration(callState.duration)}
+          onToggleMute={toggleMute}
+          onToggleVideo={toggleVideo}
+          onEndCall={endCall}
+          onSetRefs={setVideoRefs}
         />
       )}
     <AppLayout>
