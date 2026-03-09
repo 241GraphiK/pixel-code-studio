@@ -421,6 +421,7 @@ export function useCall(userId: string | undefined, userName: string | undefined
 
 
   const rejectCall = useCallback(() => {
+    stopRingtone();
     if (state.remoteUserId) {
       const rejectChannel = supabase.channel(`calls-user-${state.remoteUserId}`);
       rejectChannel
