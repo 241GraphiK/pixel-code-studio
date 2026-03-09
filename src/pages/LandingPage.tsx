@@ -390,7 +390,7 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center gap-6 text-sm text-muted-foreground">
             <a href="#features" className="hover:text-foreground transition-colors">Fonctionnalités</a>
-            <a href="#how" className="hover:text-foreground transition-colors">Guide</a>
+            <Link to="/about" className="hover:text-foreground transition-colors">À propos</Link>
             <Link to="/login" className="hover:text-foreground transition-colors">Connexion</Link>
           </div>
         </div>
