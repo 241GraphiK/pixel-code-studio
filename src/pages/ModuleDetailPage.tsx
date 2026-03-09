@@ -278,7 +278,7 @@ export default function ModuleDetailPage() {
                             <span className="text-sm font-medium text-foreground truncate">{r.title}</span>
                             <span className="text-xs text-muted-foreground uppercase ml-auto shrink-0">{r.type}</span>
                           </a>
-                          {isTeacher && mod?.teacher_id === user?.id && (
+                          {isTeacher && (
                             <button
                               onClick={() => handleDeleteResource(r.id)}
                               className="shrink-0 p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all"
