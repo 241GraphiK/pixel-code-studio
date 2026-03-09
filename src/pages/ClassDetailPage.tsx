@@ -3,16 +3,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import {
   Users, BookOpen, Calendar, MessageCircle, UsersRound,
   Plus, Trash2, ArrowLeft, Send, Video, FileText, ClipboardList,
-  Search, X, ExternalLink
+  Search, X, ExternalLink, MapPin, Clock
 } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
@@ -20,13 +17,15 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import EventFormDialog, { EventFormData } from "@/components/calendar/EventFormDialog";
+import { cn } from "@/lib/utils";
 
 // ─── Types ───
 interface ClassInfo { id: string; name: string; code: string; teacher_id: string; }
 interface Member { id: string; user_id: string; name: string; email: string; joined_at: string; }
 interface Module { id: string; title: string; field: string; level: string; }
 interface ClassModule { id: string; module_id: string; title: string; field: string; level: string; }
-interface Event { id: string; title: string; description: string | null; type: string; event_date: string | null; link_url: string | null; quiz_id: string | null; }
+interface Event { id: string; title: string; description: string | null; type: string; event_date: string | null; end_date: string | null; link_url: string | null; quiz_id: string | null; color: string | null; location: string | null; is_all_day: boolean | null; reminder_minutes: number | null; }
 interface ChatMsg { id: string; content: string; sender_id: string; sender_name: string; created_at: string; group_id: string | null; }
 interface Group { id: string; name: string; member_count: number; }
 
