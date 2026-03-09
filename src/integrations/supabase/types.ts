@@ -183,6 +183,45 @@ export type Database = {
         }
         Relationships: []
       }
+      course_class_access: {
+        Row: {
+          blocked: boolean
+          class_id: string
+          course_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          blocked?: boolean
+          class_id: string
+          course_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          blocked?: boolean
+          class_id?: string
+          course_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_class_access_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_class_access_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       course_progress: {
         Row: {
           completed: boolean
