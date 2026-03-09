@@ -407,6 +407,28 @@ export function useCall(userId: string | undefined, userName: string | undefined
     }
   }, []);
 
+  const toggleVideo = useCallback(() => {
+    if (localStream.current) {
+      const videoTrack = localStream.current.getVideoTracks()[0];
+      if (videoTrack) {
+        videoTrack.enabled = !videoTrack.enabled;
+        setState((prev) => ({ ...prev, isVideoOff: !videoTrack.enabled }));
+      }
+    }
+  }, []);
+
+  const setVideoRefs = useCallback((local: HTMLVideoElement | null, remote: HTMLVideoElement | null) => {
+    localVideoRef.current = local;
+    remoteVideoRef.current = remote;
+    // Attach existing streams if any
+    if (local && localStream.current) {
+      local.srcObject = localStream.current;
+    }
+    if (remote && remoteAudio.current?.srcObject) {
+      remote.srcObject = remoteAudio.current.srcObject;
+    }
+  }, []);
+
   const formatDuration = (seconds: number) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
@@ -420,6 +442,8 @@ export function useCall(userId: string | undefined, userName: string | undefined
     rejectCall,
     endCall,
     toggleMute,
+    toggleVideo,
+    setVideoRefs,
     formatDuration,
   };
 }
