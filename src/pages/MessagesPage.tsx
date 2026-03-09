@@ -294,6 +294,8 @@ export default function MessagesPage() {
                 {/* Input */}
                 <ChatInput
                   conversationId={selectedConvId!}
+                  replyTo={replyTo}
+                  onClearReply={() => setReplyTo(null)}
                   onSendMessage={sendMessage}
                 />
               </>
