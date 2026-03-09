@@ -18,6 +18,7 @@ import { fr } from "date-fns/locale";
 import { OnlineIndicator } from "@/components/messages/OnlineIndicator";
 import { MessageAttachment } from "@/components/messages/MessageAttachment";
 import { ChatInput } from "@/components/messages/ChatInput";
+import { MessageReactions, useReactions } from "@/components/messages/MessageReactions";
 
 export default function MessagesPage() {
   const { user } = useAuth();
