@@ -128,7 +128,9 @@ export function useCall(userId: string | undefined, userName: string | undefined
           await peerConnection.current.setRemoteDescription(
             new RTCSessionDescription(payload.answer)
           );
-      setState((prev) => ({ ...prev, status: "connected" }));
+          stopDialing();
+          playConnectedChime();
+          setState((prev) => ({ ...prev, status: "connected" }));
           callStartTime.current = Date.now();
           startDurationTimer();
         })
