@@ -247,15 +247,15 @@ export default function ModuleDetailPage() {
                   {course.duration && <span><Clock className="w-4 h-4 inline mr-1" />{course.duration}</span>}
                   {completedCourses.has(course.id) && <span className="text-success flex items-center gap-1"><CheckCircle2 className="w-4 h-4" /> Terminé</span>}
                 </div>
-                <div className="prose prose-sm max-w-none text-foreground prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-li:text-foreground">
+                <div className="course-content">
                   {courseContent ? (
                     isRichTextContent ? (
                       <div dangerouslySetInnerHTML={{ __html: courseContent }} />
                     ) : (
-                      <div className="whitespace-pre-wrap">{courseContent}</div>
+                      <div className="whitespace-pre-wrap text-sm leading-relaxed">{courseContent}</div>
                     )
                   ) : (
-                    <p>Contenu à venir...</p>
+                    <p className="text-muted-foreground italic text-sm">Contenu à venir...</p>
                   )}
                 </div>
 
