@@ -11,7 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { MessageSquare, Plus, Search, ArrowLeft, Trash2, Reply } from "lucide-react";
+import { MessageSquare, Plus, Search, ArrowLeft, Trash2, Reply, Check, CheckCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -270,12 +270,22 @@ export default function MessagesPage() {
                               {msg.content && msg.content !== msg.attachment_name && (
                                 <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                               )}
-                              <p className={cn(
-                                "text-[10px] mt-1",
-                                isMe ? "text-primary-foreground/70" : "text-muted-foreground"
+                              <div className={cn(
+                                "flex items-center gap-1 mt-1",
+                                isMe ? "justify-end" : ""
                               )}>
-                                {format(new Date(msg.created_at), "HH:mm", { locale: fr })}
-                              </p>
+                                <p className={cn(
+                                  "text-[10px]",
+                                  isMe ? "text-primary-foreground/70" : "text-muted-foreground"
+                                )}>
+                                  {format(new Date(msg.created_at), "HH:mm", { locale: fr })}
+                                </p>
+                                {isMe && (
+                                  msg.read
+                                    ? <CheckCheck className="w-3.5 h-3.5 text-blue-300" />
+                                    : <Check className="w-3.5 h-3.5 text-primary-foreground/50" />
+                                )}
+                              </div>
                             </div>
                             <MessageReactions
                               messageId={msg.id}
