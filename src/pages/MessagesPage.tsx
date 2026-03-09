@@ -22,7 +22,7 @@ export default function MessagesPage() {
   const { user } = useAuth();
   const { conversations, loading: convsLoading, refetch } = useConversations();
   const [selectedConvId, setSelectedConvId] = useState<string | null>(null);
-  const { messages, loading: msgsLoading, sendMessage } = useMessages(selectedConvId);
+  const { messages, loading: msgsLoading, sendMessage, deleteMessage } = useMessages(selectedConvId);
   const [searchQuery, setSearchQuery] = useState("");
   const [showMobileChat, setShowMobileChat] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
