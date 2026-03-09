@@ -25,6 +25,7 @@ import CreateQuizPage from "./pages/teacher/CreateQuizPage";
 import AchievementsPage from "./pages/AchievementsPage";
 import LeaderboardPage from "./pages/LeaderboardPage";
 import MessagesPage from "./pages/MessagesPage";
+import TeacherStatsPage from "./pages/teacher/TeacherStatsPage";
 
 const queryClient = new QueryClient();
 
