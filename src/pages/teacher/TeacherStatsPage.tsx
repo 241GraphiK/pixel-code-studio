@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { exportQuizResultsPdf, exportTeacherStatsPdf } from "@/lib/pdf-export";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import StudentDrillModal from "@/components/teacher/StudentDrillModal";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell, PieChart, Pie, Legend,
@@ -58,6 +59,7 @@ export default function TeacherStatsPage() {
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("avgScore");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [drillStudent, setDrillStudent] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -419,7 +421,11 @@ export default function TeacherStatsPage() {
                     {sorted.length === 0 ? (
                       <tr><td colSpan={5} className="text-center py-8 text-muted-foreground">Aucun résultat</td></tr>
                     ) : sorted.map(s => (
-                      <tr key={s.userId} className="hover:bg-accent/40 transition-colors">
+                      <tr
+                        key={s.userId}
+                        onClick={() => setDrillStudent({ id: s.userId, name: s.name })}
+                        className="hover:bg-accent/40 transition-colors cursor-pointer"
+                      >
                         <td className="px-4 py-3 font-medium text-foreground">
                           <div className="flex items-center gap-2">
                             <div className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">
@@ -448,6 +454,15 @@ export default function TeacherStatsPage() {
           </>
         )}
       </div>
+
+      {/* Student drill-down modal */}
+      <StudentDrillModal
+        open={!!drillStudent}
+        onClose={() => setDrillStudent(null)}
+        studentId={drillStudent?.id ?? null}
+        studentName={drillStudent?.name ?? ""}
+        attempts={attempts}
+      />
     </AppLayout>
   );
 }
