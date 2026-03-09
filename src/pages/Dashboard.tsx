@@ -133,7 +133,7 @@ export default function Dashboard() {
               <h2 className="text-lg font-semibold text-foreground">Modules récents</h2>
               <Link to="/modules" className="text-sm text-primary hover:underline">Voir tout →</Link>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {recentModules.map(m => (
                 <Link key={m.id} to={`/modules/${m.id}`} className="bg-card rounded-xl border border-border p-5 shadow-soft hover:shadow-medium transition-all group">
                   <div className="flex items-center gap-2 mb-2">
