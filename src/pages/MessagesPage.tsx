@@ -27,6 +27,7 @@ export default function MessagesPage() {
   const { messages, loading: msgsLoading, sendMessage, deleteMessage } = useMessages(selectedConvId);
   const [searchQuery, setSearchQuery] = useState("");
   const [showMobileChat, setShowMobileChat] = useState(false);
+  const [replyTo, setReplyTo] = useState<Message | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { isOnline } = usePresence();
   const { fetchReactions, toggleReaction, getReactions } = useReactions(selectedConvId);
