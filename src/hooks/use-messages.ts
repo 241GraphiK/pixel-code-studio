@@ -25,6 +25,9 @@ export interface Message {
   content: string;
   created_at: string;
   read: boolean;
+  attachment_url?: string | null;
+  attachment_name?: string | null;
+  attachment_type?: string | null;
   sender?: { name: string; avatar_url: string | null };
 }
 
