@@ -186,7 +186,7 @@ export default function MessagesPage() {
                     {messages.map(msg => {
                       const isMe = msg.sender_id === user?.id;
                       return (
-                        <div key={msg.id} className={cn("flex group", isMe ? "justify-end" : "justify-start")}>
+                        <div key={msg.id} className={cn("flex group items-end gap-1", isMe ? "justify-end" : "justify-start")}>
                           {isMe && (
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
@@ -216,38 +216,40 @@ export default function MessagesPage() {
                               </AlertDialogContent>
                             </AlertDialog>
                           )}
-                          <div className={cn(
-                            "max-w-[75%] rounded-2xl px-4 py-2",
-                            isMe
-                              ? "bg-primary text-primary-foreground rounded-br-md"
-                              : "bg-muted text-foreground rounded-bl-md"
-                          )}>
-                            {msg.attachment_url && msg.attachment_name && msg.attachment_type && (
-                              <div className="mb-1">
-                                <MessageAttachment
-                                  url={msg.attachment_url}
-                                  name={msg.attachment_name}
-                                  type={msg.attachment_type}
-                                  isMe={isMe}
-                                />
-                              </div>
-                            )}
-                            {msg.content && msg.content !== msg.attachment_name && (
-                              <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                            )}
-                            <p className={cn(
-                              "text-[10px] mt-1",
-                              isMe ? "text-primary-foreground/70" : "text-muted-foreground"
+                          <div className="flex flex-col">
+                            <div className={cn(
+                              "max-w-[75%] rounded-2xl px-4 py-2",
+                              isMe
+                                ? "bg-primary text-primary-foreground rounded-br-md ml-auto"
+                                : "bg-muted text-foreground rounded-bl-md"
                             )}>
-                              {format(new Date(msg.created_at), "HH:mm", { locale: fr })}
-                            </p>
+                              {msg.attachment_url && msg.attachment_name && msg.attachment_type && (
+                                <div className="mb-1">
+                                  <MessageAttachment
+                                    url={msg.attachment_url}
+                                    name={msg.attachment_name}
+                                    type={msg.attachment_type}
+                                    isMe={isMe}
+                                  />
+                                </div>
+                              )}
+                              {msg.content && msg.content !== msg.attachment_name && (
+                                <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                              )}
+                              <p className={cn(
+                                "text-[10px] mt-1",
+                                isMe ? "text-primary-foreground/70" : "text-muted-foreground"
+                              )}>
+                                {format(new Date(msg.created_at), "HH:mm", { locale: fr })}
+                              </p>
+                            </div>
+                            <MessageReactions
+                              messageId={msg.id}
+                              reactions={getReactions(msg.id)}
+                              isMe={isMe}
+                              onToggle={toggleReaction}
+                            />
                           </div>
-                          <MessageReactions
-                            messageId={msg.id}
-                            reactions={getReactions(msg.id)}
-                            isMe={isMe}
-                            onToggle={toggleReaction}
-                          />
                         </div>
                       );
                     })}
