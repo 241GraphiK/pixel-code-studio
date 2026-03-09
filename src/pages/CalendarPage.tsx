@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Calendar as CalIcon, Plus, Filter } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Calendar as CalIcon, Plus, Filter, ExternalLink } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
 import EventCalendar, { type CalendarEvent } from "@/components/calendar/EventCalendar";
 import EventFormDialog, { type EventFormData } from "@/components/calendar/EventFormDialog";
