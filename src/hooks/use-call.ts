@@ -146,6 +146,9 @@ export function useCall(userId: string | undefined, userName: string | undefined
         })
         .on("broadcast", { event: "call-end" }, ({ payload }) => {
           if (payload.senderId === userId) return;
+          stopRingtone();
+          stopDialing();
+          playEndCallTone();
           cleanup();
           setState({
             status: "ended",
