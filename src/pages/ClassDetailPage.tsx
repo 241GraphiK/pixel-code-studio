@@ -49,7 +49,7 @@ export default function ClassDetailPage() {
   const [availableModules, setAvailableModules] = useState<Module[]>([]);
   const [addModuleOpen, setAddModuleOpen] = useState(false);
 
-  // Events
+  // Events (rich form)
   const [events, setEvents] = useState<Event[]>([]);
   const [eventDialogOpen, setEventDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
