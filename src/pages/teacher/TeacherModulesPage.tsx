@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { BookOpen, Plus, FileQuestion, Pencil, Trash2 } from "lucide-react";
+import { BookOpen, Plus, FileQuestion, Pencil, Trash2, Settings2 } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
