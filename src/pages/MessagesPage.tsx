@@ -35,6 +35,7 @@ export default function MessagesPage() {
   const { isOnline } = usePresence();
   const { fetchReactions, toggleReaction, getReactions } = useReactions(selectedConvId);
   const { typingNames, sendTyping, sendStopTyping } = useTypingIndicator(selectedConvId, user?.id);
+  const { callState, startCall, acceptCall, rejectCall, endCall, toggleMute, formatDuration } = useCall(user?.id, profile?.name);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
