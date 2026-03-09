@@ -23,6 +23,7 @@ import { MessageReactions, useReactions } from "@/components/messages/MessageRea
 import { useTypingIndicator } from "@/hooks/use-typing";
 import { useCall } from "@/hooks/use-call";
 import { IncomingCallDialog, ActiveCallBar, VideoCallOverlay } from "@/components/messages/CallUI";
+import { CallLogEntry } from "@/components/messages/CallLogEntry";
 
 export default function MessagesPage() {
   const { user, profile } = useAuth();
