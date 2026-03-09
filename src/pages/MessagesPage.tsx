@@ -375,6 +375,7 @@ export default function MessagesPage() {
         </Card>
       </div>
     </AppLayout>
+    </>
   );
 }
 
