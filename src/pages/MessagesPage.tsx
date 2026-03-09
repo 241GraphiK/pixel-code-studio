@@ -177,7 +177,16 @@ export default function MessagesPage() {
                     {messages.map(msg => {
                       const isMe = msg.sender_id === user?.id;
                       return (
-                        <div key={msg.id} className={cn("flex", isMe ? "justify-end" : "justify-start")}>
+                        <div key={msg.id} className={cn("flex group", isMe ? "justify-end" : "justify-start")}>
+                          {isMe && (
+                            <button
+                              onClick={() => deleteMessage(msg.id)}
+                              className="opacity-0 group-hover:opacity-100 transition-opacity self-center mr-1"
+                              title="Supprimer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 text-muted-foreground hover:text-destructive" />
+                            </button>
+                          )}
                           <div className={cn(
                             "max-w-[75%] rounded-2xl px-4 py-2",
                             isMe
