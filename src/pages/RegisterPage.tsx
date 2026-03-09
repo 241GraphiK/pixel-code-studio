@@ -31,7 +31,7 @@ export default function RegisterPage() {
     setLoading(true);
     const { error } = await signUp(form.email, form.password, {
       name: form.name,
-      role: form.role,
+      role: "student",
       institution: form.institution,
       field: form.field,
       level: form.level,

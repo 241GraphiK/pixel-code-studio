@@ -375,6 +375,7 @@ export default function CreateQuizPage() {
           </div>
         </form>
       </div>
+      </RoleGuard>
     </AppLayout>
   );
 }
