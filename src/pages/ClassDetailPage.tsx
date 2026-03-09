@@ -51,9 +51,8 @@ export default function ClassDetailPage() {
 
   // Events
   const [events, setEvents] = useState<Event[]>([]);
-  const [eventOpen, setEventOpen] = useState(false);
+  const [eventDialogOpen, setEventDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
-  const [eventForm, setEventForm] = useState({ title: "", description: "", type: "other", event_date: "", link_url: "", quiz_id: "" });
 
   // Chat
   const [messages, setMessages] = useState<ChatMsg[]>([]);
