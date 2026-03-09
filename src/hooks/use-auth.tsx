@@ -13,6 +13,7 @@ export interface Profile {
   field: string;
   level: string;
   avatar_url: string;
+  blocked: boolean;
 }
 
 interface AuthContextType {

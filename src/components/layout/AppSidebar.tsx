@@ -28,7 +28,6 @@ const navItems: NavItem[] = [
   { label: "Mes modules", href: "/teacher/modules", icon: BookOpen, roles: ["teacher"] },
   { label: "Stats étudiants", href: "/teacher/stats", icon: BarChart3, roles: ["teacher", "admin"] },
   { label: "Statistiques", href: "/stats", icon: BarChart3, roles: ["student", "teacher", "admin"] },
-  { label: "Utilisateurs", href: "/admin/users", icon: UserCog, roles: ["admin"] },
   { label: "Administration", href: "/admin", icon: Shield, roles: ["admin"] },
   { label: "Paramètres", href: "/settings", icon: Settings, roles: ["student", "teacher", "admin"] },
 ];
