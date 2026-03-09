@@ -289,7 +289,6 @@ export function useCall(userId: string | undefined, userName: string | undefined
                 mode: "audio" as CallMode,
                 duration: 0,
               };
-              };
             }
             return prev;
           });
