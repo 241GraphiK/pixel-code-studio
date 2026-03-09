@@ -337,6 +337,7 @@ export function useCall(userId: string | undefined, userName: string | undefined
 
       incomingOfferRef.current = null;
       setState((prev) => ({ ...prev, status: "connected" }));
+      callStartTime.current = Date.now();
       startDurationTimer();
     } catch (e) {
       console.error("Failed to accept call:", e);
