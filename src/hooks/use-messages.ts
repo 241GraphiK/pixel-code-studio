@@ -28,6 +28,7 @@ export interface Message {
   attachment_url?: string | null;
   attachment_name?: string | null;
   attachment_type?: string | null;
+  reply_to_id?: string | null;
   sender?: { name: string; avatar_url: string | null };
 }
 
