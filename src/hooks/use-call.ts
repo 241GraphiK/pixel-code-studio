@@ -1,5 +1,10 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  startRingtone, stopRingtone,
+  startDialing, stopDialing,
+  playConnectedChime, playEndCallTone, playNotificationBeep,
+} from "@/lib/call-sounds";
 
 export type CallStatus = "idle" | "calling" | "ringing" | "connected" | "ended";
 export type CallMode = "audio" | "video";
