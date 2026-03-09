@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Calendar as CalIcon, Plus, Filter } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Calendar as CalIcon, Plus, Filter, ExternalLink } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
 import EventCalendar, { type CalendarEvent } from "@/components/calendar/EventCalendar";
 import EventFormDialog, { type EventFormData } from "@/components/calendar/EventFormDialog";
@@ -279,7 +280,13 @@ export default function CalendarPage() {
             <div className="space-y-3">
               <div className="flex items-center gap-2 flex-wrap">
                 <Badge variant="secondary">{typeLabels[viewEvent.type] || viewEvent.type}</Badge>
-                {viewEvent.class_name && <Badge variant="outline">{viewEvent.class_name}</Badge>}
+                {viewEvent.class_name && (
+                  <Link to={`/classes/${viewEvent.class_id}`} className="hover:opacity-80 transition-opacity">
+                    <Badge variant="outline" className="cursor-pointer gap-1">
+                      {viewEvent.class_name} <ExternalLink className="w-3 h-3" />
+                    </Badge>
+                  </Link>
+                )}
               </div>
               {viewEvent.event_date && (
                 <p className="text-sm text-muted-foreground">
