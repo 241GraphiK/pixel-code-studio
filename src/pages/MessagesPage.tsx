@@ -214,23 +214,41 @@ export default function MessagesPage() {
                     onClick={() => {
                       const other = getOtherParticipant(selectedConv);
                       if (other && selectedConvId) {
-                        startCall(selectedConvId, other.user_id, other.name);
+                        startCall(selectedConvId, other.user_id, other.name, "audio");
                       }
                     }}
                   >
                     <Phone className="w-4 h-4" />
                   </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="shrink-0 rounded-full"
+                    disabled={callState.status !== "idle"}
+                    onClick={() => {
+                      const other = getOtherParticipant(selectedConv);
+                      if (other && selectedConvId) {
+                        startCall(selectedConvId, other.user_id, other.name, "video");
+                      }
+                    }}
+                  >
+                    <Video className="w-4 h-4" />
+                  </Button>
                 </div>
 
-                {/* Active call bar */}
-                {(callState.status === "calling" || callState.status === "connected" || callState.status === "ended") &&
+                {/* Active call bar (audio only) */}
+                {callState.mode === "audio" &&
+                  (callState.status === "calling" || callState.status === "connected" || callState.status === "ended") &&
                   callState.conversationId === selectedConvId && (
                   <ActiveCallBar
                     status={callState.status}
                     remoteName={callState.remoteName}
+                    mode={callState.mode}
                     isMuted={callState.isMuted}
+                    isVideoOff={callState.isVideoOff}
                     duration={formatDuration(callState.duration)}
                     onToggleMute={toggleMute}
+                    onToggleVideo={toggleVideo}
                     onEndCall={endCall}
                   />
                 )}
