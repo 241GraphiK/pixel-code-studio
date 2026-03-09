@@ -228,6 +228,59 @@ export function useCall(userId: string | undefined, userName: string | undefined
     [userId, getSignalingChannel]
   );
 
+  const sendMissedCallNotification = useCallback(async (
+    targetUserId: string,
+    callerName: string,
+    mode: CallMode,
+    callStatus: "missed" | "rejected"
+  ) => {
+    try {
+      const label = mode === "video" ? "vidéo" : "vocal";
+      const statusLabel = callStatus === "missed" ? "manqué" : "refusé";
+      await supabase.from("notifications").insert({
+        user_id: targetUserId,
+        type: "call",
+        title: `Appel ${label} ${statusLabel}`,
+        body: `${callerName} a essayé de vous appeler`,
+        link: "/messages",
+      });
+    } catch (e) {
+      console.error("Failed to send missed call notification:", e);
+    }
+  }, []);
+
+  const logCall = useCallback(async (
+    conversationId: string,
+    remoteUserId: string,
+    mode: CallMode,
+    callStatus: "completed" | "missed" | "rejected",
+    duration: number
+  ) => {
+    if (!userId) return;
+    try {
+      await supabase.from("call_logs" as any).insert({
+        conversation_id: conversationId,
+        caller_id: userId,
+        receiver_id: remoteUserId,
+        mode,
+        status: callStatus,
+        duration,
+      });
+
+      // Send notification for missed/rejected calls
+      if (callStatus === "missed" || callStatus === "rejected") {
+        await sendMissedCallNotification(
+          remoteUserId,
+          userName || "Quelqu'un",
+          mode,
+          callStatus
+        );
+      }
+    } catch (e) {
+      console.error("Failed to log call:", e);
+    }
+  }, [userId, userName, sendMissedCallNotification]);
+
   const startCall = useCallback(
     async (conversationId: string, targetUserId: string, targetName: string, mode: CallMode = "audio") => {
       if (!userId || !userName) return;
@@ -282,6 +335,8 @@ export function useCall(userId: string | undefined, userName: string | undefined
           setState((prev) => {
             if (prev.status === "calling") {
               cleanup();
+              // Log missed call and send notification
+              logCall(conversationId, targetUserId, mode, "missed", 0);
               return {
                 status: "ended" as const,
                 conversationId: null,
@@ -306,7 +361,7 @@ export function useCall(userId: string | undefined, userName: string | undefined
         setState((prev) => ({ ...prev, status: "idle" }));
       }
     },
-    [userId, userName, createPeerConnection, getSignalingChannel, cleanup]
+    [userId, userName, createPeerConnection, getSignalingChannel, cleanup, logCall]
   );
 
   const acceptCall = useCallback(async () => {
@@ -346,27 +401,6 @@ export function useCall(userId: string | undefined, userName: string | undefined
     }
   }, [state.conversationId, userId, createPeerConnection, getSignalingChannel, cleanup]);
 
-  const logCall = useCallback(async (
-    conversationId: string,
-    remoteUserId: string,
-    mode: CallMode,
-    callStatus: "completed" | "missed" | "rejected",
-    duration: number
-  ) => {
-    if (!userId) return;
-    try {
-      await supabase.from("call_logs" as any).insert({
-        conversation_id: conversationId,
-        caller_id: userId,
-        receiver_id: remoteUserId,
-        mode,
-        status: callStatus,
-        duration,
-      });
-    } catch (e) {
-      console.error("Failed to log call:", e);
-    }
-  }, [userId]);
 
   const rejectCall = useCallback(() => {
     if (state.remoteUserId) {
