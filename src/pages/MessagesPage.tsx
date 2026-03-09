@@ -189,35 +189,68 @@ export default function MessagesPage() {
                       return (
                         <div key={msg.id} className={cn("flex group items-end gap-1", isMe ? "justify-end" : "justify-start")}>
                           {isMe && (
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <button
-                                  className="opacity-0 group-hover:opacity-100 transition-opacity self-center mr-1"
-                                  title="Supprimer"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5 text-muted-foreground hover:text-destructive" />
-                                </button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Supprimer ce message ?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Cette action est irréversible. Le message sera supprimé définitivement.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => deleteMessage(msg.id)}
-                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                  >
-                                    Supprimer
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
+                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity self-center">
+                              <button
+                                onClick={() => setReplyTo(msg)}
+                                className="p-1 rounded hover:bg-accent"
+                                title="Répondre"
+                              >
+                                <Reply className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
+                              </button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <button className="p-1 rounded hover:bg-accent" title="Supprimer">
+                                    <Trash2 className="w-3.5 h-3.5 text-muted-foreground hover:text-destructive" />
+                                  </button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Supprimer ce message ?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Cette action est irréversible. Le message sera supprimé définitivement.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => deleteMessage(msg.id)}
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                      Supprimer
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
                           )}
-                          <div className="flex flex-col">
+                          {!isMe && (
+                            <div className="order-2 opacity-0 group-hover:opacity-100 transition-opacity self-center">
+                              <button
+                                onClick={() => setReplyTo(msg)}
+                                className="p-1 rounded hover:bg-accent"
+                                title="Répondre"
+                              >
+                                <Reply className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
+                              </button>
+                            </div>
+                          )}
+                          <div className={cn("flex flex-col", !isMe && "order-1")}>
+                            {/* Quoted reply */}
+                            {msg.reply_to_id && (() => {
+                              const repliedMsg = messages.find(m => m.id === msg.reply_to_id);
+                              if (!repliedMsg) return null;
+                              return (
+                                <div className={cn(
+                                  "text-[11px] px-3 py-1.5 rounded-t-lg border-l-2 border-primary/50 mb-0.5",
+                                  isMe
+                                    ? "bg-primary/20 text-primary-foreground/80 ml-auto"
+                                    : "bg-muted/80 text-muted-foreground"
+                                )}>
+                                  <p className="font-medium text-[10px]">{repliedMsg.sender?.name}</p>
+                                  <p className="truncate max-w-[200px]">{repliedMsg.content}</p>
+                                </div>
+                              );
+                            })()}
                             <div className={cn(
                               "max-w-[75%] rounded-2xl px-4 py-2",
                               isMe
