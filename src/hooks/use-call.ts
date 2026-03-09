@@ -82,6 +82,7 @@ export function useCall(userId: string | undefined, userName: string | undefined
 
         incomingOfferRef.current = payload.offer;
         incomingModeRef.current = payload.mode || "audio";
+        startRingtone();
         setState((prev) => ({
           ...prev,
           status: "ringing",
