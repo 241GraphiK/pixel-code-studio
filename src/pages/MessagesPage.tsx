@@ -65,6 +65,14 @@ export default function MessagesPage() {
   });
 
   return (
+    <>
+      {callState.status === "ringing" && (
+        <IncomingCallDialog
+          remoteName={callState.remoteName}
+          onAccept={acceptCall}
+          onReject={rejectCall}
+        />
+      )}
     <AppLayout>
       <div className="h-[calc(100vh-4rem)] flex flex-col">
         <div className="mb-4">
