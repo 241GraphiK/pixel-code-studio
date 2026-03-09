@@ -310,6 +310,5 @@ export function exportCourseContentPdf(
 
   printWindow.document.close();
   printWindow.focus();
-  doc.save(`${safeCourseTitle}-${now.replace(/\//g, "-")}.pdf`);
 }
 
