@@ -346,6 +346,28 @@ export function useCall(userId: string | undefined, userName: string | undefined
     }
   }, [state.conversationId, userId, createPeerConnection, getSignalingChannel, cleanup]);
 
+  const logCall = useCallback(async (
+    conversationId: string,
+    remoteUserId: string,
+    mode: CallMode,
+    callStatus: "completed" | "missed" | "rejected",
+    duration: number
+  ) => {
+    if (!userId) return;
+    try {
+      await supabase.from("call_logs" as any).insert({
+        conversation_id: conversationId,
+        caller_id: userId,
+        receiver_id: remoteUserId,
+        mode,
+        status: callStatus,
+        duration,
+      });
+    } catch (e) {
+      console.error("Failed to log call:", e);
+    }
+  }, [userId]);
+
   const rejectCall = useCallback(() => {
     if (state.remoteUserId) {
       const rejectChannel = supabase.channel(`calls-user-${state.remoteUserId}`);
@@ -379,28 +401,6 @@ export function useCall(userId: string | undefined, userName: string | undefined
       duration: 0,
     });
   }, [state.remoteUserId, state.conversationId, state.mode, cleanup, logCall]);
-
-  const logCall = useCallback(async (
-    conversationId: string,
-    remoteUserId: string,
-    mode: CallMode,
-    status: "completed" | "missed" | "rejected",
-    duration: number
-  ) => {
-    if (!userId) return;
-    try {
-      await supabase.from("call_logs" as any).insert({
-        conversation_id: conversationId,
-        caller_id: userId,
-        receiver_id: remoteUserId,
-        mode,
-        status,
-        duration,
-      });
-    } catch (e) {
-      console.error("Failed to log call:", e);
-    }
-  }, [userId]);
 
   const endCall = useCallback(() => {
     const convId = state.conversationId;
