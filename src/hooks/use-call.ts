@@ -455,6 +455,7 @@ export function useCall(userId: string | undefined, userName: string | undefined
   }, [state.remoteUserId, state.conversationId, state.mode, cleanup, logCall]);
 
   const endCall = useCallback(() => {
+    playEndCallTone();
     const convId = state.conversationId;
     const remoteId = state.remoteUserId;
     const mode = state.mode;
