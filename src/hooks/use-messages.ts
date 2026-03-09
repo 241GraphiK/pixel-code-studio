@@ -25,6 +25,9 @@ export interface Message {
   content: string;
   created_at: string;
   read: boolean;
+  attachment_url?: string | null;
+  attachment_name?: string | null;
+  attachment_type?: string | null;
   sender?: { name: string; avatar_url: string | null };
 }
 
@@ -217,13 +220,16 @@ export function useMessages(conversationId: string | null) {
     };
   }, [conversationId, user]);
 
-  const sendMessage = async (content: string) => {
-    if (!conversationId || !user || !content.trim()) return;
+  const sendMessage = async (content: string, attachment?: { url: string; name: string; type: string }) => {
+    if (!conversationId || !user || (!content.trim() && !attachment)) return;
 
     await supabase.from("messages").insert({
       conversation_id: conversationId,
       sender_id: user.id,
-      content: content.trim(),
+      content: content.trim() || (attachment?.name ?? ""),
+      attachment_url: attachment?.url ?? null,
+      attachment_name: attachment?.name ?? null,
+      attachment_type: attachment?.type ?? null,
     });
 
     // Update conversation timestamp
