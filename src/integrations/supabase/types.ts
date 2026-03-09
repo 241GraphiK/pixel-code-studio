@@ -50,6 +50,57 @@ export type Database = {
         }
         Relationships: []
       }
+      class_events: {
+        Row: {
+          class_id: string
+          created_at: string
+          description: string | null
+          event_date: string | null
+          id: string
+          link_url: string | null
+          quiz_id: string | null
+          title: string
+          type: string
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          description?: string | null
+          event_date?: string | null
+          id?: string
+          link_url?: string | null
+          quiz_id?: string | null
+          title: string
+          type?: string
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          description?: string | null
+          event_date?: string | null
+          id?: string
+          link_url?: string | null
+          quiz_id?: string | null
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_events_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_events_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       class_members: {
         Row: {
           class_id: string
@@ -75,6 +126,48 @@ export type Database = {
             columns: ["class_id"]
             isOneToOne: false
             referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      class_messages: {
+        Row: {
+          class_id: string
+          content: string
+          created_at: string
+          group_id: string | null
+          id: string
+          sender_id: string
+        }
+        Insert: {
+          class_id: string
+          content: string
+          created_at?: string
+          group_id?: string | null
+          id?: string
+          sender_id: string
+        }
+        Update: {
+          class_id?: string
+          content?: string
+          created_at?: string
+          group_id?: string | null
+          id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_messages_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_messages_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "student_groups"
             referencedColumns: ["id"]
           },
         ]
@@ -288,6 +381,35 @@ export type Database = {
             columns: ["module_id"]
             isOneToOne: false
             referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_members: {
+        Row: {
+          group_id: string
+          id: string
+          joined_at: string
+          user_id: string
+        }
+        Insert: {
+          group_id: string
+          id?: string
+          joined_at?: string
+          user_id: string
+        }
+        Update: {
+          group_id?: string
+          id?: string
+          joined_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "student_groups"
             referencedColumns: ["id"]
           },
         ]
@@ -586,6 +708,35 @@ export type Database = {
             columns: ["course_id"]
             isOneToOne: false
             referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_groups: {
+        Row: {
+          class_id: string
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_groups_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
             referencedColumns: ["id"]
           },
         ]

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Users, Search, Plus, Copy, Check, Trash2, Settings } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Users, Search, Plus, Copy, Check, Trash2, Eye } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ interface ClassRow {
 }
 
 export default function ClassesPage() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [joinCode, setJoinCode] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -283,6 +285,9 @@ export default function ClassesPage() {
                     </span>
                   )}
                   <div className="flex gap-2 mt-4">
+                    <Button variant="outline" size="sm" onClick={() => navigate(`/classes/${c.id}`)} className="gap-1">
+                      <Eye className="w-3.5 h-3.5" /> Voir
+                    </Button>
                     {isOwner && (
                       <Button 
                         variant="ghost" 
