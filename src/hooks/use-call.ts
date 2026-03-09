@@ -254,6 +254,7 @@ export function useCall(userId: string | undefined, userName: string | undefined
                 callerName: userName,
                 targetUserId: targetUserId,
                 conversationId: conversationId,
+                mode: mode,
               },
             });
             setTimeout(() => supabase.removeChannel(targetChannel), 2000);
