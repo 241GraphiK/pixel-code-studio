@@ -25,6 +25,7 @@ import CreateQuizPage from "./pages/teacher/CreateQuizPage";
 import AchievementsPage from "./pages/AchievementsPage";
 import LeaderboardPage from "./pages/LeaderboardPage";
 import MessagesPage from "./pages/MessagesPage";
+import CallHistoryPage from "./pages/CallHistoryPage";
 import TeacherStatsPage from "./pages/teacher/TeacherStatsPage";
 import EditModulePage from "./pages/teacher/EditModulePage";
 import ClassDetailPage from "./pages/ClassDetailPage";
@@ -61,6 +62,7 @@ const App = () => (
               <Route path="/achievements" element={<ProtectedRoute><AchievementsPage /></ProtectedRoute>} />
               <Route path="/leaderboard" element={<ProtectedRoute><LeaderboardPage /></ProtectedRoute>} />
               <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
+              <Route path="/call-history" element={<ProtectedRoute><CallHistoryPage /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

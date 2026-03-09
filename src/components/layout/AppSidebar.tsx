@@ -4,7 +4,7 @@ import NotificationBell from "@/components/layout/NotificationBell";
 import {
   LayoutDashboard, BookOpen, FileQuestion, Users, BarChart3,
   Settings, GraduationCap, Moon, Sun, LogOut, Menu, X,
-  Shield, UserCog, ChevronDown, Trophy, Crown, MessageSquare
+  Shield, UserCog, ChevronDown, Trophy, Crown, MessageSquare, PhoneCall
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/use-theme";
@@ -25,6 +25,7 @@ const navItems: NavItem[] = [
   { label: "Succès", href: "/achievements", icon: Trophy, roles: ["student", "teacher", "admin"] },
   { label: "Classement", href: "/leaderboard", icon: Crown, roles: ["student", "teacher", "admin"] },
   { label: "Messages", href: "/messages", icon: MessageSquare, roles: ["student", "teacher", "admin"] },
+  { label: "Appels", href: "/call-history", icon: PhoneCall, roles: ["student", "teacher", "admin"] },
   { label: "Mes modules", href: "/teacher/modules", icon: BookOpen, roles: ["teacher"] },
   { label: "Stats étudiants", href: "/teacher/stats", icon: BarChart3, roles: ["teacher", "admin"] },
   { label: "Statistiques", href: "/stats", icon: BarChart3, roles: ["student", "teacher", "admin"] },
