@@ -270,12 +270,22 @@ export default function MessagesPage() {
                               {msg.content && msg.content !== msg.attachment_name && (
                                 <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                               )}
-                              <p className={cn(
-                                "text-[10px] mt-1",
-                                isMe ? "text-primary-foreground/70" : "text-muted-foreground"
+                              <div className={cn(
+                                "flex items-center gap-1 mt-1",
+                                isMe ? "justify-end" : ""
                               )}>
-                                {format(new Date(msg.created_at), "HH:mm", { locale: fr })}
-                              </p>
+                                <p className={cn(
+                                  "text-[10px]",
+                                  isMe ? "text-primary-foreground/70" : "text-muted-foreground"
+                                )}>
+                                  {format(new Date(msg.created_at), "HH:mm", { locale: fr })}
+                                </p>
+                                {isMe && (
+                                  msg.read
+                                    ? <CheckCheck className="w-3.5 h-3.5 text-blue-300" />
+                                    : <Check className="w-3.5 h-3.5 text-primary-foreground/50" />
+                                )}
+                              </div>
                             </div>
                             <MessageReactions
                               messageId={msg.id}
