@@ -184,6 +184,8 @@ export function useCall(userId: string | undefined, userName: string | undefined
       clearInterval(durationInterval.current);
       durationInterval.current = null;
     }
+    stopRingtone();
+    stopDialing();
     if (localStream.current) {
       localStream.current.getTracks().forEach((t) => t.stop());
       localStream.current = null;
