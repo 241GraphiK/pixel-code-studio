@@ -37,13 +37,15 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
           </div>
           <h2 className="text-xl font-bold text-foreground mb-2">Compte bloqué</h2>
            <p className="text-muted-foreground mb-4">
-33:             Votre compte a été bloqué par un administrateur. Contactez le support pour plus d'informations.
-34:           </p>
-35:           <Button variant="destructive" onClick={handleSignOut} className="gap-2">
-36:             <LogOut className="w-4 h-4" />
-37:             Déconnexion
-38:           </Button>
-    );
+             Votre compte a été bloqué par un administrateur. Contactez le support pour plus d'informations.
+           </p>
+           <Button variant="destructive" onClick={handleSignOut} className="gap-2">
+             <LogOut className="w-4 h-4" />
+             Déconnexion
+           </Button>
+         </div>
+       </div>
+     );
   }
 
   return <>{children}</>;
