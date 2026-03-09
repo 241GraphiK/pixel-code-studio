@@ -308,7 +308,7 @@ export function useCall(userId: string | undefined, userName: string | undefined
         setState((prev) => ({ ...prev, status: "idle" }));
       }
     },
-    [userId, userName, createPeerConnection, getSignalingChannel, cleanup]
+    [userId, userName, createPeerConnection, getSignalingChannel, cleanup, logCall]
   );
 
   const acceptCall = useCallback(async () => {
