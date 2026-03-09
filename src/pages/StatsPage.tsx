@@ -200,12 +200,12 @@ export default function StatsPage() {
   return (
     <AppLayout>
       <div className="space-y-6 animate-fade-in">
-        <div className="flex items-start justify-between flex-wrap gap-3">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <BarChart3 className="w-6 h-6 text-primary" /> Statistiques
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-primary" /> Statistiques
             </h1>
-            <p className="text-muted-foreground">Suivez votre progression détaillée</p>
+            <p className="text-muted-foreground text-sm">Suivez votre progression détaillée</p>
           </div>
           {isTeacher && !loading && teacherAttempts.length > 0 && (
             <div className="flex gap-2">
