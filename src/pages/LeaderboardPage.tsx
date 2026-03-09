@@ -140,29 +140,33 @@ export default function LeaderboardPage() {
 
         {/* Top 3 podium */}
         {filtered.length >= 3 && (
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[1, 0, 2].map(idx => {
               const e = filtered[idx];
               if (!e) return null;
               const rank = idx + 1;
-              const sizes = rank === 1 ? "py-6" : "py-4 mt-4";
+              const sizes = rank === 1 ? "py-6" : "py-4 sm:mt-4";
               const borderColor = rank === 1 ? "border-yellow-500/30 bg-yellow-500/5" : rank === 2 ? "border-gray-400/30 bg-gray-400/5" : "border-amber-600/30 bg-amber-600/5";
               return (
-                <div key={e.id} className={`bg-card rounded-xl border-2 ${borderColor} p-4 ${sizes} shadow-soft text-center flex flex-col items-center`}>
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${rank === 1 ? "bg-yellow-500/20" : rank === 2 ? "bg-gray-400/20" : "bg-amber-600/20"}`}>
-                    <Medal className={`w-5 h-5 ${medalColors[rank - 1]}`} />
+                <div key={e.id} className={`bg-card rounded-xl border-2 ${borderColor} p-4 ${sizes} shadow-soft text-center flex flex-col sm:items-center sm:text-center items-start text-left`}>
+                  <div className="flex sm:flex-col items-center gap-3 sm:gap-0 w-full sm:w-auto">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center sm:mb-2 ${rank === 1 ? "bg-yellow-500/20" : rank === 2 ? "bg-gray-400/20" : "bg-amber-600/20"}`}>
+                      <Medal className={`w-5 h-5 ${medalColors[rank - 1]}`} />
+                    </div>
+                    <Avatar className="w-12 h-12 sm:mb-2">
+                      <AvatarFallback className="text-sm bg-primary/10 text-primary font-bold">
+                        {e.name?.charAt(0)?.toUpperCase() || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 sm:flex-initial min-w-0">
+                      <p className="font-semibold text-foreground text-sm truncate">{e.name}</p>
+                      <p className="text-xs text-muted-foreground">{e.institution || "—"} · {e.field || "—"}</p>
+                      <div className="mt-1 sm:mt-2 flex items-center gap-1 text-warning font-bold text-sm">
+                        <Zap className="w-4 h-4" /> {e.xp} XP
+                      </div>
+                      <p className="text-xs text-muted-foreground">Niveau {e.gamification_level}</p>
+                    </div>
                   </div>
-                  <Avatar className="w-12 h-12 mb-2">
-                    <AvatarFallback className="text-sm bg-primary/10 text-primary font-bold">
-                      {e.name?.charAt(0)?.toUpperCase() || "?"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <p className="font-semibold text-foreground text-sm truncate w-full">{e.name}</p>
-                  <p className="text-xs text-muted-foreground">{e.institution || "—"} · {e.field || "—"}</p>
-                  <div className="mt-2 flex items-center gap-1 text-warning font-bold text-sm">
-                    <Zap className="w-4 h-4" /> {e.xp} XP
-                  </div>
-                  <p className="text-xs text-muted-foreground">Niveau {e.gamification_level}</p>
                 </div>
               );
             })}

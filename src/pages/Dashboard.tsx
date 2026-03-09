@@ -133,7 +133,7 @@ export default function Dashboard() {
               <h2 className="text-lg font-semibold text-foreground">Modules récents</h2>
               <Link to="/modules" className="text-sm text-primary hover:underline">Voir tout →</Link>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {recentModules.map(m => (
                 <Link key={m.id} to={`/modules/${m.id}`} className="bg-card rounded-xl border border-border p-5 shadow-soft hover:shadow-medium transition-all group">
                   <div className="flex items-center gap-2 mb-2">
@@ -155,7 +155,7 @@ export default function Dashboard() {
             <h2 className="text-lg font-semibold text-foreground">QCM récents</h2>
             <Link to="/quizzes" className="text-sm text-primary hover:underline">Voir tout →</Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {recentQuizzes.map(q => (
               <Link key={q.id} to={`/quizzes/${q.id}`} className="bg-card rounded-xl border border-border p-5 shadow-soft hover:shadow-medium transition-all">
                 <div className="flex items-center gap-2 mb-2">
@@ -182,7 +182,7 @@ export default function Dashboard() {
               </h2>
               <Link to="/achievements" className="text-sm text-primary hover:underline">Voir tout →</Link>
             </div>
-            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               {badges.slice(0, 6).map(badge => (
                 <BadgeCard key={badge.id} badge={badge} earned={earnedBadgeIds.has(badge.id)} compact />
               ))}
