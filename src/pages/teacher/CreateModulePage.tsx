@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import RoleGuard from "@/components/auth/RoleGuard";
 
 interface CourseForm {
   title: string;
