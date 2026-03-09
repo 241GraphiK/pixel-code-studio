@@ -267,11 +267,17 @@ export async function createConversation(currentUserId: string, otherUserId: str
 
   if (!conv) throw new Error("Failed to create conversation");
 
-  // Add both participants
-  await supabase.from("conversation_participants").insert([
-    { conversation_id: conv.id, user_id: currentUserId },
-    { conversation_id: conv.id, user_id: otherUserId },
-  ]);
+  // Add current user first (RLS allows user_id = auth.uid())
+  const { error: err1 } = await supabase.from("conversation_participants").insert(
+    { conversation_id: conv.id, user_id: currentUserId }
+  );
+  if (err1) throw new Error("Failed to add current user: " + err1.message);
+
+  // Then add other user (RLS allows because current user already participates)
+  const { error: err2 } = await supabase.from("conversation_participants").insert(
+    { conversation_id: conv.id, user_id: otherUserId }
+  );
+  if (err2) throw new Error("Failed to add other user: " + err2.message);
 
   return conv.id;
 }
