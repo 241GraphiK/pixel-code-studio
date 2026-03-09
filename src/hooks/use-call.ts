@@ -374,14 +374,49 @@ export function useCall(userId: string | undefined, userName: string | undefined
     });
   }, [state.remoteUserId, cleanup]);
 
+  const logCall = useCallback(async (
+    conversationId: string,
+    remoteUserId: string,
+    mode: CallMode,
+    status: "completed" | "missed" | "rejected",
+    duration: number
+  ) => {
+    if (!userId) return;
+    try {
+      await supabase.from("call_logs" as any).insert({
+        conversation_id: conversationId,
+        caller_id: userId,
+        receiver_id: remoteUserId,
+        mode,
+        status,
+        duration,
+      });
+    } catch (e) {
+      console.error("Failed to log call:", e);
+    }
+  }, [userId]);
+
   const endCall = useCallback(() => {
-    if (state.conversationId && channelRef.current) {
+    const convId = state.conversationId;
+    const remoteId = state.remoteUserId;
+    const mode = state.mode;
+    const wasConnected = callStartTime.current !== null;
+    const dur = wasConnected ? Math.floor((Date.now() - callStartTime.current!) / 1000) : 0;
+
+    if (convId && channelRef.current) {
       channelRef.current.send({
         type: "broadcast",
         event: "call-end",
         payload: { senderId: userId },
       });
     }
+
+    // Log the call
+    if (convId && remoteId) {
+      logCall(convId, remoteId, mode, wasConnected ? "completed" : "missed", dur);
+    }
+
+    callStartTime.current = null;
     cleanup();
     setState({
       status: "ended",
@@ -397,7 +432,7 @@ export function useCall(userId: string | undefined, userName: string | undefined
       () => setState((p) => (p.status === "ended" ? { ...p, status: "idle" } : p)),
       2000
     );
-  }, [state.conversationId, userId, cleanup]);
+  }, [state.conversationId, state.remoteUserId, state.mode, userId, cleanup, logCall]);
 
   const toggleMute = useCallback(() => {
     if (localStream.current) {
