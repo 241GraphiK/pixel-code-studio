@@ -285,6 +285,9 @@ export default function ClassesPage() {
                     </span>
                   )}
                   <div className="flex gap-2 mt-4">
+                    <Button variant="outline" size="sm" onClick={() => navigate(`/classes/${c.id}`)} className="gap-1">
+                      <Eye className="w-3.5 h-3.5" /> Voir
+                    </Button>
                     {isOwner && (
                       <Button 
                         variant="ghost" 
