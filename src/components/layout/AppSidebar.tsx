@@ -26,7 +26,7 @@ const navItems: NavItem[] = [
   { label: "Classement", href: "/leaderboard", icon: Crown, roles: ["student", "teacher", "admin"] },
   { label: "Messages", href: "/messages", icon: MessageSquare, roles: ["student", "teacher", "admin"] },
   { label: "Appels", href: "/call-history", icon: PhoneCall, roles: ["student", "teacher", "admin"] },
-  { label: "Mes modules", href: "/teacher/modules", icon: BookOpen, roles: ["teacher"] },
+  { label: "Mes modules", href: "/teacher/modules", icon: BookOpen, roles: ["teacher", "admin"] },
   { label: "Stats étudiants", href: "/teacher/stats", icon: BarChart3, roles: ["teacher", "admin"] },
   { label: "Statistiques", href: "/stats", icon: BarChart3, roles: ["student", "teacher", "admin"] },
   { label: "Administration", href: "/admin", icon: Shield, roles: ["admin"] },
