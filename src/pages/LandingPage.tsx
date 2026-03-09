@@ -142,27 +142,6 @@ export default function LandingPage() {
                 J'ai déjà un compte
               </Button>
             </Link>
-          </motion.div>
-
-          {/* Floating badges */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1, duration: 1 }}
-            className="mt-16 flex items-center justify-center gap-3 flex-wrap"
-          >
-            {["React", "TypeScript", "Gamification", "Temps réel", "Mode sombre"].map((tag, i) => (
-              <motion.span
-                key={tag}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 1.2 + i * 0.1 }}
-                className="px-3 py-1.5 rounded-full bg-card border border-border/50 text-xs font-medium text-muted-foreground backdrop-blur-sm"
-              >
-                {tag}
-              </motion.span>
-            ))}
-          </motion.div>
         </motion.div>
 
         {/* Scroll indicator */}
