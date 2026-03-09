@@ -242,15 +242,15 @@ export default function ModuleDetailPage() {
             )}
           </div>
 
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 flex gap-6 items-start">
             {course ? (
-              <div className="bg-card rounded-xl border border-border p-6 shadow-soft">
+              <div className="bg-card rounded-xl border border-border p-6 shadow-soft flex-1 min-w-0">
                 <h2 className="text-xl font-bold text-foreground mb-2">{course.title}</h2>
                 <div className="flex items-center gap-3 text-sm text-muted-foreground mb-6">
                   {course.duration && <span><Clock className="w-4 h-4 inline mr-1" />{course.duration}</span>}
                   {completedCourses.has(course.id) && <span className="text-success flex items-center gap-1"><CheckCircle2 className="w-4 h-4" /> Terminé</span>}
                 </div>
-                <div className="course-content">
+                <div className="course-content" ref={contentRef}>
                   {courseContent ? (
                     isRichTextContent ? (
                       <div dangerouslySetInnerHTML={{ __html: courseContent }} />
@@ -310,10 +310,13 @@ export default function ModuleDetailPage() {
                 </div>
               </div>
             ) : (
-              <div className="text-center py-16 text-muted-foreground">
+              <div className="flex-1 text-center py-16 text-muted-foreground">
                 <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-30" />
                 <p>Sélectionnez un cours</p>
               </div>
+            )}
+            {isRichTextContent && course && (
+              <TableOfContents htmlContent={courseContent} contentRef={contentRef} />
             )}
           </div>
         </div>
