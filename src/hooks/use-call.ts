@@ -94,6 +94,8 @@ export function useCall(userId: string | undefined, userName: string | undefined
       })
       .on("broadcast", { event: "call-rejected" }, ({ payload }) => {
         if (payload.targetUserId !== userId) return;
+        stopDialing();
+        playNotificationBeep();
         cleanup();
         setState({
           status: "ended",
