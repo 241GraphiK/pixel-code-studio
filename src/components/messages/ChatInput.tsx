@@ -146,7 +146,7 @@ export function ChatInput({ conversationId, replyTo, onClearReply, onSendMessage
         <Input
           ref={inputRef}
           value={message}
-          onChange={e => setMessage(e.target.value)}
+          onChange={handleInputChange}
           placeholder={replyTo ? "Répondre..." : "Écrivez un message..."}
           className="flex-1"
           disabled={uploading}
