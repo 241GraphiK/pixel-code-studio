@@ -334,6 +334,7 @@ export function useCall(userId: string | undefined, userName: string | undefined
           }
         });
 
+        startDialing();
         setState({
           status: "calling",
           conversationId,
