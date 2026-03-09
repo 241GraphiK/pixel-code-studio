@@ -1,13 +1,20 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
+import { Button } from "@/components/ui/button";
+import { LogOut } from "lucide-react";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, signOut } = useAuth();
+  const navigate = useNavigate();
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/login");
+  };
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -29,12 +36,16 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
             <span className="text-3xl">🚫</span>
           </div>
           <h2 className="text-xl font-bold text-foreground mb-2">Compte bloqué</h2>
-          <p className="text-muted-foreground mb-4">
-            Votre compte a été bloqué par un administrateur. Contactez le support pour plus d'informations.
-          </p>
-        </div>
-      </div>
-    );
+           <p className="text-muted-foreground mb-4">
+             Votre compte a été bloqué par un administrateur. Contactez le support pour plus d'informations.
+           </p>
+           <Button variant="destructive" onClick={handleSignOut} className="gap-2">
+             <LogOut className="w-4 h-4" />
+             Déconnexion
+           </Button>
+         </div>
+       </div>
+     );
   }
 
   return <>{children}</>;
