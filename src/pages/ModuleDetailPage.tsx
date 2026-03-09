@@ -294,6 +294,17 @@ export default function ModuleDetailPage() {
                   {!completedCourses.has(course.id) && (
                     <Button onClick={handleMarkComplete}>Marquer comme terminé</Button>
                   )}
+                  <Button
+                    variant="outline"
+                    onClick={() => exportCourseContentPdf(
+                      course.title,
+                      mod?.title || "Module",
+                      isRichTextContent ? courseContent : "",
+                      isRichTextContent ? "" : courseContent
+                    )}
+                  >
+                    <Download className="w-4 h-4 mr-2" /> Exporter en PDF
+                  </Button>
                 </div>
               </div>
             ) : (
