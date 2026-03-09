@@ -19,6 +19,7 @@ interface ClassRow {
 }
 
 export default function ClassesPage() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [joinCode, setJoinCode] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
