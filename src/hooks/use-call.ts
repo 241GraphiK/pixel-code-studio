@@ -280,12 +280,15 @@ export function useCall(userId: string | undefined, userName: string | undefined
             if (prev.status === "calling") {
               cleanup();
               return {
-                status: "ended",
+                status: "ended" as const,
                 conversationId: null,
                 remoteUserId: null,
                 remoteName: null,
                 isMuted: false,
+                isVideoOff: false,
+                mode: "audio" as CallMode,
                 duration: 0,
+              };
               };
             }
             return prev;
