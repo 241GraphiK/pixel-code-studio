@@ -207,16 +207,20 @@ export default function ClassDetailPage() {
     if (error) toast.error(error.message); else { toast.success("Module retiré"); fetchClassModules(); }
   };
 
-  const saveEvent = async () => {
-    if (!id || !eventForm.title.trim()) return;
+  const saveEvent = async (data: EventFormData) => {
+    if (!id) return;
     const payload = {
       class_id: id,
-      title: eventForm.title,
-      description: eventForm.description || null,
-      type: eventForm.type,
-      event_date: eventForm.event_date || null,
-      link_url: eventForm.link_url || null,
-      quiz_id: eventForm.quiz_id || null,
+      title: data.title,
+      description: data.description || null,
+      type: data.type,
+      event_date: data.event_date || null,
+      end_date: data.end_date || null,
+      link_url: data.link_url || null,
+      location: data.location || null,
+      color: data.color || "primary",
+      is_all_day: data.is_all_day,
+      reminder_minutes: data.reminder_minutes,
     };
     if (editingEvent) {
       const { error } = await supabase.from("class_events").update(payload).eq("id", editingEvent.id);
@@ -225,9 +229,7 @@ export default function ClassDetailPage() {
       const { error } = await supabase.from("class_events").insert(payload);
       if (error) toast.error(error.message); else toast.success("Événement créé");
     }
-    setEventOpen(false);
     setEditingEvent(null);
-    setEventForm({ title: "", description: "", type: "other", event_date: "", link_url: "", quiz_id: "" });
     fetchEvents();
   };
 
@@ -239,15 +241,7 @@ export default function ClassDetailPage() {
 
   const openEditEvent = (e: Event) => {
     setEditingEvent(e);
-    setEventForm({
-      title: e.title,
-      description: e.description || "",
-      type: e.type,
-      event_date: e.event_date ? e.event_date.slice(0, 16) : "",
-      link_url: e.link_url || "",
-      quiz_id: e.quiz_id || "",
-    });
-    setEventOpen(true);
+    setEventDialogOpen(true);
   };
 
   const sendMessage = async () => {
