@@ -258,14 +258,13 @@ export async function createConversation(currentUserId: string, otherUserId: str
     }
   }
 
-  // Create new conversation
-  const { data: conv } = await supabase
+  // Create new conversation (generate id client-side to avoid SELECT policy dependency right after INSERT)
+  const conversationId = crypto.randomUUID();
+  const { error: convError } = await supabase
     .from("conversations")
-    .insert({})
-    .select("id")
-    .single();
+    .insert({ id: conversationId });
 
-  if (!conv) throw new Error("Failed to create conversation");
+  if (convError) throw new Error("Failed to create conversation: " + convError.message);
 
   // Add current user first (RLS allows user_id = auth.uid())
   const { error: err1 } = await supabase.from("conversation_participants").insert(
