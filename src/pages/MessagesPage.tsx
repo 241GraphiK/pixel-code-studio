@@ -21,7 +21,7 @@ import { ChatInput } from "@/components/messages/ChatInput";
 import { MessageReactions, useReactions } from "@/components/messages/MessageReactions";
 import { useTypingIndicator } from "@/hooks/use-typing";
 import { useCall } from "@/hooks/use-call";
-import { IncomingCallDialog, ActiveCallBar } from "@/components/messages/CallUI";
+import { IncomingCallDialog, ActiveCallBar, VideoCallOverlay } from "@/components/messages/CallUI";
 
 export default function MessagesPage() {
   const { user, profile } = useAuth();
