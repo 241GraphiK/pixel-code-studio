@@ -18,17 +18,24 @@ interface ModuleRow {
 }
 
 export default function TeacherModulesPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [modules, setModules] = useState<ModuleRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const isAdmin = profile?.role === "admin";
 
   const fetchModules = async () => {
     if (!user) return;
-    const { data } = await supabase
+    let query = supabase
       .from("modules")
       .select("id, title, description, field, level, created_at")
-      .eq("teacher_id", user.id)
       .order("created_at", { ascending: false });
+
+    // Admin sees all modules, teacher only their own
+    if (!isAdmin) {
+      query = query.eq("teacher_id", user.id);
+    }
+
+    const { data } = await query;
     setModules(data || []);
     setLoading(false);
   };
