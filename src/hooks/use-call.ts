@@ -74,12 +74,14 @@ export function useCall(userId: string | undefined, userName: string | undefined
         }
 
         incomingOfferRef.current = payload.offer;
+        incomingModeRef.current = payload.mode || "audio";
         setState((prev) => ({
           ...prev,
           status: "ringing",
           conversationId: payload.conversationId,
           remoteUserId: payload.callerId,
           remoteName: payload.callerName,
+          mode: payload.mode || "audio",
         }));
       })
       .on("broadcast", { event: "call-rejected" }, ({ payload }) => {
