@@ -108,14 +108,25 @@ export default function QuizzesPage() {
         ) : (
           <div className="space-y-3">
             {filtered.map(q => (
-              <Link key={q.id} to={`/quizzes/${q.id}`} className="flex items-center gap-4 bg-card rounded-xl border border-border p-5 shadow-soft hover:shadow-medium transition-all group">
-                <div className={cn(
-                  "w-12 h-12 rounded-lg flex items-center justify-center shrink-0",
-                  q.difficulty === "easy" ? "bg-success/10 text-success" : q.difficulty === "medium" ? "bg-warning/10 text-warning" : "bg-destructive/10 text-destructive"
-                )}>
-                  <FileQuestion className="w-6 h-6" />
+              <Link key={q.id} to={`/quizzes/${q.id}`} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 bg-card rounded-xl border border-border p-4 sm:p-5 shadow-soft hover:shadow-medium transition-all group">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className={cn(
+                    "w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center shrink-0",
+                    q.difficulty === "easy" ? "bg-success/10 text-success" : q.difficulty === "medium" ? "bg-warning/10 text-warning" : "bg-destructive/10 text-destructive"
+                  )}>
+                    <FileQuestion className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </div>
+                  <div className="flex-1 min-w-0 sm:hidden">
+                    <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors text-sm">{q.title}</h3>
+                    {q.bestScore !== undefined && (
+                      <div className="flex items-center gap-1 text-success text-xs mt-0.5">
+                        <Trophy className="w-3 h-3" />
+                        <span className="font-semibold">{q.bestScore}%</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
+                <div className="hidden sm:block flex-1 min-w-0">
                   <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">{q.title}</h3>
                   <p className="text-sm text-muted-foreground line-clamp-1">{q.description || ""}</p>
                   <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
@@ -129,7 +140,20 @@ export default function QuizzesPage() {
                     </span>
                   </div>
                 </div>
-                <div className="text-right shrink-0">
+                <div className="flex items-center justify-between sm:hidden text-xs text-muted-foreground">
+                  <div className="flex items-center gap-3">
+                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {q.duration} min</span>
+                    <span>{q.questionCount} q.</span>
+                    <span className={cn(
+                      "font-medium",
+                      q.difficulty === "easy" ? "text-success" : q.difficulty === "medium" ? "text-warning" : "text-destructive"
+                    )}>
+                      {q.difficulty === "easy" ? "Facile" : q.difficulty === "medium" ? "Moyen" : "Difficile"}
+                    </span>
+                  </div>
+                  <ChevronRight className="w-4 h-4" />
+                </div>
+                <div className="hidden sm:block text-right shrink-0">
                   {q.bestScore !== undefined ? (
                     <div className="flex items-center gap-1 text-success">
                       <Trophy className="w-4 h-4" />
@@ -139,7 +163,7 @@ export default function QuizzesPage() {
                     <span className="text-sm text-muted-foreground">Non passé</span>
                   )}
                 </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                <ChevronRight className="hidden sm:block w-5 h-5 text-muted-foreground" />
               </Link>
             ))}
           </div>

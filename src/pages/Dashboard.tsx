@@ -182,7 +182,7 @@ export default function Dashboard() {
               </h2>
               <Link to="/achievements" className="text-sm text-primary hover:underline">Voir tout →</Link>
             </div>
-            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               {badges.slice(0, 6).map(badge => (
                 <BadgeCard key={badge.id} badge={badge} earned={earnedBadgeIds.has(badge.id)} compact />
               ))}

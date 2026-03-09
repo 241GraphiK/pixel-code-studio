@@ -208,11 +208,11 @@ export default function StatsPage() {
             <p className="text-muted-foreground text-sm">Suivez votre progression détaillée</p>
           </div>
           {isTeacher && !loading && teacherAttempts.length > 0 && (
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={handleExportResults}>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <Button variant="outline" size="sm" onClick={handleExportResults} className="w-full sm:w-auto">
                 <Download className="w-4 h-4 mr-1" /> Résultats PDF
               </Button>
-              <Button variant="outline" size="sm" onClick={handleExportStats}>
+              <Button variant="outline" size="sm" onClick={handleExportStats} className="w-full sm:w-auto">
                 <Download className="w-4 h-4 mr-1" /> Stats PDF
               </Button>
             </div>
