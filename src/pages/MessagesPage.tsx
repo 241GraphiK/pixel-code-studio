@@ -268,7 +268,17 @@ export default function MessagesPage() {
                 {/* Messages */}
                 <ScrollArea className="flex-1 p-4">
                   <div className="space-y-3">
-                    {messages.map(msg => {
+                    {timeline.map(item => {
+                      if (item.type === "call") {
+                        return (
+                          <CallLogEntry
+                            key={`call-${item.data.id}`}
+                            log={item.data}
+                            currentUserId={user?.id || ""}
+                          />
+                        );
+                      }
+                      const msg = item.data as Message;
                       const isMe = msg.sender_id === user?.id;
                       return (
                         <div key={msg.id} className={cn("flex group items-end gap-1", isMe ? "justify-end" : "justify-start")}>
