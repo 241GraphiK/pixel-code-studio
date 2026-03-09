@@ -306,7 +306,9 @@ export function useCall(userId: string | undefined, userName: string | undefined
     if (!state.conversationId || !incomingOfferRef.current || !userId) return;
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mode = incomingModeRef.current;
+      const constraints: MediaStreamConstraints = { audio: true, video: mode === "video" };
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
       localStream.current = stream;
 
       const pc = createPeerConnection(state.conversationId);
