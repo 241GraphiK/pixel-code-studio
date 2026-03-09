@@ -37,9 +37,12 @@ export function useCall(userId: string | undefined, userName: string | undefined
   const peerConnection = useRef<RTCPeerConnection | null>(null);
   const localStream = useRef<MediaStream | null>(null);
   const remoteAudio = useRef<HTMLAudioElement | null>(null);
+  const localVideoRef = useRef<HTMLVideoElement | null>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const durationInterval = useRef<NodeJS.Timeout | null>(null);
   const incomingOfferRef = useRef<RTCSessionDescriptionInit | null>(null);
+  const incomingModeRef = useRef<CallMode>("audio");
 
   // Setup remote audio element
   useEffect(() => {
