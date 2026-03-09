@@ -11,7 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { MessageSquare, Plus, Search, ArrowLeft, Trash2, Reply, Check, CheckCheck } from "lucide-react";
+import { MessageSquare, Plus, Search, ArrowLeft, Trash2, Reply, Check, CheckCheck, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -20,6 +20,8 @@ import { MessageAttachment } from "@/components/messages/MessageAttachment";
 import { ChatInput } from "@/components/messages/ChatInput";
 import { MessageReactions, useReactions } from "@/components/messages/MessageReactions";
 import { useTypingIndicator } from "@/hooks/use-typing";
+import { useCall } from "@/hooks/use-call";
+import { IncomingCallDialog, ActiveCallBar } from "@/components/messages/CallUI";
 
 export default function MessagesPage() {
   const { user, profile } = useAuth();
@@ -33,6 +35,7 @@ export default function MessagesPage() {
   const { isOnline } = usePresence();
   const { fetchReactions, toggleReaction, getReactions } = useReactions(selectedConvId);
   const { typingNames, sendTyping, sendStopTyping } = useTypingIndicator(selectedConvId, user?.id);
+  const { callState, startCall, acceptCall, rejectCall, endCall, toggleMute, formatDuration } = useCall(user?.id, profile?.name);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -62,6 +65,14 @@ export default function MessagesPage() {
   });
 
   return (
+    <>
+      {callState.status === "ringing" && (
+        <IncomingCallDialog
+          remoteName={callState.remoteName}
+          onAccept={acceptCall}
+          onReject={rejectCall}
+        />
+      )}
     <AppLayout>
       <div className="h-[calc(100vh-4rem)] flex flex-col">
         <div className="mb-4">
@@ -173,7 +184,7 @@ export default function MessagesPage() {
                       className="absolute -bottom-0.5 -right-0.5"
                     />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <p className="text-sm font-medium text-foreground">{getOtherParticipant(selectedConv)?.name}</p>
                     <p className="text-xs text-muted-foreground">
                       {isOnline(getOtherParticipant(selectedConv)?.user_id || "")
@@ -181,7 +192,34 @@ export default function MessagesPage() {
                         : (getOtherParticipant(selectedConv)?.role === "teacher" ? "Enseignant" : "Étudiant")}
                     </p>
                   </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="shrink-0 rounded-full"
+                    disabled={callState.status !== "idle"}
+                    onClick={() => {
+                      const other = getOtherParticipant(selectedConv);
+                      if (other && selectedConvId) {
+                        startCall(selectedConvId, other.user_id, other.name);
+                      }
+                    }}
+                  >
+                    <Phone className="w-4 h-4" />
+                  </Button>
                 </div>
+
+                {/* Active call bar */}
+                {(callState.status === "calling" || callState.status === "connected" || callState.status === "ended") &&
+                  callState.conversationId === selectedConvId && (
+                  <ActiveCallBar
+                    status={callState.status}
+                    remoteName={callState.remoteName}
+                    isMuted={callState.isMuted}
+                    duration={formatDuration(callState.duration)}
+                    onToggleMute={toggleMute}
+                    onEndCall={endCall}
+                  />
+                )}
 
                 {/* Messages */}
                 <ScrollArea className="flex-1 p-4">
@@ -337,6 +375,7 @@ export default function MessagesPage() {
         </Card>
       </div>
     </AppLayout>
+    </>
   );
 }
 
