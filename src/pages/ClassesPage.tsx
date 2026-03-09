@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Users, Search, Plus, Copy, Check, Trash2, Settings } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Users, Search, Plus, Copy, Check, Trash2, Eye } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
