@@ -142,6 +142,7 @@ export default function LandingPage() {
                 J'ai déjà un compte
               </Button>
             </Link>
+          </motion.div>
         </motion.div>
 
         {/* Scroll indicator */}
