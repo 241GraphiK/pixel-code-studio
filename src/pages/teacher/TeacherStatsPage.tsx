@@ -59,6 +59,7 @@ export default function TeacherStatsPage() {
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("avgScore");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [drillStudent, setDrillStudent] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
