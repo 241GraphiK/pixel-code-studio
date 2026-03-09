@@ -282,6 +282,8 @@ export function useCall(userId: string | undefined, userName: string | undefined
           setState((prev) => {
             if (prev.status === "calling") {
               cleanup();
+              // Log missed call and send notification
+              logCall(conversationId, targetUserId, mode, "missed", 0);
               return {
                 status: "ended" as const,
                 conversationId: null,
