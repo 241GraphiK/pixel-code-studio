@@ -213,6 +213,19 @@ export function useMessages(conversationId: string | null) {
           }
         }
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "messages",
+          filter: `conversation_id=eq.${conversationId}`,
+        },
+        (payload) => {
+          const deletedId = (payload.old as { id: string }).id;
+          setMessages(prev => prev.filter(m => m.id !== deletedId));
+        }
+      )
       .subscribe();
 
     return () => {
@@ -238,8 +251,13 @@ export function useMessages(conversationId: string | null) {
       .update({ updated_at: new Date().toISOString() })
       .eq("id", conversationId);
   };
+  const deleteMessage = async (messageId: string) => {
+    if (!user) return;
+    await supabase.from("messages").delete().eq("id", messageId).eq("sender_id", user.id);
+    setMessages(prev => prev.filter(m => m.id !== messageId));
+  };
 
-  return { messages, loading, sendMessage, refetch: fetchMessages };
+  return { messages, loading, sendMessage, deleteMessage, refetch: fetchMessages };
 }
 
 export async function createConversation(currentUserId: string, otherUserId: string) {
