@@ -89,6 +89,8 @@ export function ChatInput({ conversationId, replyTo, onClearReply, onSendMessage
       setMessage("");
       setFile(null);
       onClearReply?.();
+      onStopTyping?.();
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       if (fileInputRef.current) fileInputRef.current.value = "";
     } catch {
       toast.error("Erreur lors de l'envoi");
