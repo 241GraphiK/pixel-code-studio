@@ -47,7 +47,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex bg-background relative overflow-hidden">
       {/* Background orbs */}
-      <motion.div {...floatingOrb} className="absolute top-20 left-10 w-72 h-72 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
+      <motion.div animate={{ y: [0, -20, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" as const }} className="absolute top-20 left-10 w-72 h-72 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
       <motion.div animate={{ y: [0, 15, 0] }} transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" as const }} className="absolute bottom-20 right-10 w-96 h-96 rounded-full bg-info/5 blur-3xl pointer-events-none" />
 
       {/* Left - Form */}
