@@ -16,12 +16,6 @@ const fadeUp = {
   }),
 };
 
-const floatingOrb = {
-  animate: {
-    y: [0, -20, 0],
-    transition: { duration: 6, repeat: Infinity, ease: "easeInOut" },
-  },
-};
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
