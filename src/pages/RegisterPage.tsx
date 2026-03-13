@@ -59,8 +59,8 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex bg-background relative overflow-hidden">
       {/* Background orbs */}
-      <motion.div animate={{ y: [0, -15, 0] }} transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }} className="absolute top-32 right-20 w-80 h-80 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
-      <motion.div animate={{ y: [0, 20, 0] }} transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }} className="absolute bottom-10 left-10 w-64 h-64 rounded-full bg-info/5 blur-3xl pointer-events-none" />
+      <motion.div animate={{ y: [0, -15, 0] }} transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" as const }} className="absolute top-32 right-20 w-80 h-80 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
+      <motion.div animate={{ y: [0, 20, 0] }} transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" as const }} className="absolute bottom-10 left-10 w-64 h-64 rounded-full bg-info/5 blur-3xl pointer-events-none" />
 
       {/* Left - Visual panel */}
       <motion.div
