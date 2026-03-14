@@ -11,19 +11,22 @@ interface StatCardProps {
 
 export default function StatCard({ title, value, subtitle, icon, trend, className }: StatCardProps) {
   return (
-    <div className={cn("bg-card rounded-xl border border-border p-5 shadow-soft transition-all hover:shadow-medium", className)}>
+    <div className={cn(
+      "group relative bg-card rounded-2xl border border-border/60 p-5 shadow-soft transition-all duration-300 hover:shadow-medium hover:border-border",
+      className
+    )}>
       <div className="flex items-start justify-between">
-        <div className="space-y-1">
-          <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          <p className="text-2xl font-bold text-foreground">{value}</p>
+        <div className="space-y-1.5">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">{title}</p>
+          <p className="text-2xl font-bold font-display text-foreground">{value}</p>
           {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
           {trend && (
-            <p className={cn("text-xs font-medium", trend.positive ? "text-success" : "text-destructive")}>
-              {trend.positive ? "+" : ""}{trend.value}% cette semaine
+            <p className={cn("text-xs font-semibold", trend.positive ? "text-success" : "text-destructive")}>
+              {trend.positive ? "↑" : "↓"} {Math.abs(trend.value)}% cette semaine
             </p>
           )}
         </div>
-        <div className="p-2.5 rounded-lg bg-primary/10 text-primary">
+        <div className="p-2.5 rounded-xl bg-primary/8 text-primary transition-colors group-hover:bg-primary/12">
           {icon}
         </div>
       </div>
