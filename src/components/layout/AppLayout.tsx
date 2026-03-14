@@ -9,7 +9,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
     <div className="flex min-h-screen bg-background">
       <AppSidebar />
       <main className="flex-1 min-h-screen overflow-y-auto">
-        <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
+        <div className="p-4 md:p-6 lg:p-8 max-w-[1400px] mx-auto animate-fade-in">
           {children}
         </div>
       </main>

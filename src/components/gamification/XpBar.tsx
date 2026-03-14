@@ -24,28 +24,31 @@ export default function XpBar({ xp, level, xpProgress, xpInCurrentLevel, compact
   }
 
   return (
-    <div className="bg-card rounded-xl border border-border p-5 shadow-soft">
-      <div className="flex items-center justify-between mb-3">
+    <div className="relative bg-card rounded-2xl border border-border/60 p-5 shadow-soft overflow-hidden">
+      {/* Subtle gradient accent */}
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-warning/60 via-warning to-warning/60 rounded-t-2xl" />
+      
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-warning/20 to-warning/5 border border-warning/20 flex items-center justify-center">
             <Star className="w-6 h-6 text-warning fill-warning" />
           </div>
           <div>
-            <p className="text-sm font-medium text-muted-foreground">Niveau</p>
-            <p className="text-2xl font-bold text-foreground">{level}</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">Niveau</p>
+            <p className="text-2xl font-bold font-display text-foreground">{level}</p>
           </div>
         </div>
         <div className="text-right">
-          <p className="text-sm text-muted-foreground">XP Total</p>
-          <p className="text-xl font-bold text-foreground flex items-center gap-1">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">XP Total</p>
+          <p className="text-xl font-bold font-display text-foreground flex items-center gap-1 justify-end">
             <Zap className="w-4 h-4 text-warning" /> {xp}
           </p>
         </div>
       </div>
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         <div className="flex justify-between text-xs text-muted-foreground">
           <span>Progression vers Niv. {level + 1}</span>
-          <span>{xpInCurrentLevel}/100 XP</span>
+          <span className="font-semibold">{xpInCurrentLevel}/100 XP</span>
         </div>
         <Progress value={xpProgress} className="h-2.5" />
       </div>
